@@ -16,6 +16,7 @@
        integer                        :: rst_bi_out   ! used for parallel io with large restart file.
                                                       ! each process will output the restart tile.
        character(len=256)             :: geo_static_flnm = ""
+!       character(len=256)             :: HRLDAS_CONSTANTS_FILE = ""
        integer                        :: DEEPGWSPIN
        integer                        :: order_to_write, rst_typ
        
@@ -38,6 +39,8 @@
           integer :: ntran               ! number of transect, Qian, 2016.06
           real    :: dt_flowtran         ! interval for averaging-streamflow of specified transects (sec.)
           integer :: IRRIG_OPTION        ! if activated irrigation module = 1, else = 0
+          integer :: indexeros           ! Erosion option index (1: erosion is simulated; not equal 1: otherwise)
+          integer :: NumFracts           ! Maximum number of size fractions found any of the soil types defined in the soil type input grid
 
           logical :: GwPreDiag, GwSpinUp
           real    :: DTRT, dxrt0, DTCT, gwChanCondConstIn, gwChanCondConstOut, gwIhShift

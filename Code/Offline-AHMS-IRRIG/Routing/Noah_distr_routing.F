@@ -2276,7 +2276,9 @@
                SMCWLTRT, SMCRT,     SICERT,    OVROUGHRT, LAKE_MSKRT, LKSATRT,      &
                OV_ROUGH, SLDPTH,    soiltypRT, soiltyp,    SOLDRAIN,                &
                sinfil,   runoff,    SOLINFL,   tinfil,       &
-               PRECIPRT, preciprate,EVAPRT,    evaprate,   IRRIGRT,   irrigrate, dt )
+               PRECIPRT, preciprate,EVAPRT,    evaprate,   IRRIGRT,   irrigrate,    &
+               K1_FACTOR, kfactor,  LAI,       LAIRT,      slope,     slopert,      &
+               GINDEX,   GINDEXRT,  dt )
               implicit none
 
                 integer,           INTENT(IN) :: IX, JX, NSOIL, IXRT, JXRT, AGGFACTRT
@@ -2313,6 +2315,14 @@
                 real,    OPTIONAL, INTENT(OUT),   DIMENSION(IXRT,JXRT) :: evaprate
                 real,              INTENT(IN),    DIMENSION(IX,JX)     :: IRRIGRT
                 real,    OPTIONAL, INTENT(OUT),   DIMENSION(IXRT,JXRT) :: irrigrate
+                real,              INTENT(IN),    DIMENSION(IX,JX)     :: K1_FACTOR
+                real,    OPTIONAL, INTENT(OUT),   DIMENSION(IXRT,JXRT) :: kfactor
+                real,              INTENT(IN),    DIMENSION(IX,JX)     :: LAI
+                real,    OPTIONAL, INTENT(OUT),   DIMENSION(IXRT,JXRT) :: LAIRT
+                real,              INTENT(IN),    DIMENSION(IX,JX)     :: slope
+                real,    OPTIONAL, INTENT(OUT),   DIMENSION(IXRT,JXRT) :: slopert
+                real,              INTENT(IN),    DIMENSION(IX,JX)     :: GINDEX
+                real,    OPTIONAL, INTENT(OUT),   DIMENSION(IXRT,JXRT) :: GINDEXRT
                 real,              INTENT(IN)                          :: dt 
 
              end subroutine disaggregateDomain
@@ -2345,6 +2355,10 @@
                   PRECIPRT     = RT_DOMAIN(did)%PRECIPRT,    preciprate= rt2d(did)%precip,         &
                   EVAPRT       = RT_DOMAIN(did)%EVAPRT,      evaprate  = rt2d(did)%evap,           &
                   IRRIGRT      = RT_DOMAIN(DID)%IRRIG,       irrigrate = rt2d(did)%irg,            &
+                  K1_FACTOR    = RT_DOMAIN(did)%K1_FACTOR,   kfactor   = rt2d(did)%kfactor,        &
+                  LAI          = RT_DOMAIN(did)%LAI,         LAIRT     = rt2d(did)%LAI,            &
+                  slope        = RT_DOMAIN(did)%slope,       slopert   = rt2d(did)%slope,          &
+                  GINDEX       = RT_DOMAIN(did)%GINDEX,      GINDEXRT  = rt2d(did)%GINDEX,         &
                   dt           = nlst_rt(did)%dtrt     )  
 
 !           call disaggregateDomain( RT_DOMAIN(did)%IX,RT_DOMAIN(did)%JX,nlst_rt(did)%NSOIL,&
@@ -2368,7 +2382,8 @@
                      LKSATFAC, CH_NETRT,SH2OWGT,SMCREFRT, INFXSUBRT,SMCMAXRT, &
                      SMCWLTRT,SMCRT, SICERT, OVROUGHRT, LAKE_MSKRT, LKSATRT,OV_ROUGH,  &
                      SLDPTH, soiltypRT, soiltyp,SOLDRAIN, sinfil, runoff,  &
-                     SOLINFL,tinfil, PRECIPRT, preciprate, EVAPRT, evaprate, IRRIGRT, irrigrate, dt)  ! Qian, 2016.09
+                     SOLINFL,tinfil, PRECIPRT, preciprate, EVAPRT, evaprate, IRRIGRT, irrigrate, &  
+                     K1_FACTOR, kfactor, LAI, LAIRT, slope, slopert, GINDEX, GINDEXRT, dt)  ! Qian, 2016.09
 
 #ifdef MPP_LAND
         use module_mpp_land, only: left_id,down_id,right_id, &
@@ -2416,6 +2431,15 @@
         real,              INTENT(IN),    DIMENSION(IX,JX)     :: IRRIGRT          ! accumulated irrigation, mm
         real,    OPTIONAL, INTENT(OUT),   DIMENSION(IXRT,JXRT) :: irrigrate        ! irrigation rate, m/s
         real,              INTENT(IN)                          :: dt               ! HYDRO timestep interval, sec.
+
+        real,              INTENT(IN),    DIMENSION(IX,JX)     :: K1_FACTOR
+        real,              INTENT(OUT),   DIMENSION(IXRT,JXRT) :: kfactor
+        real,              INTENT(IN),    DIMENSION(IX,JX)     :: LAI
+        real,              INTENT(OUT),   DIMENSION(IXRT,JXRT) :: LAIRT
+        real,              INTENT(IN),    DIMENSION(IX,JX)     :: slope
+        real,              INTENT(OUT),   DIMENSION(IXRT,JXRT) :: slopert
+        real,              INTENT(IN),    DIMENSION(IX,JX)     :: GINDEX
+        real,              INTENT(OUT),   DIMENSION(IXRT,JXRT) :: GINDEXRT
 
         ! LOCAL VARIABLES
         real, dimension(ixrt,jxrt) :: SOLDRAINSUBRT   ! soil drainage at HYDRO scale, mm
@@ -2495,31 +2519,6 @@
                                           INFXSWGT(IXXRT,JYYRT)/dist(IXXRT,JYYRT,9)
 !                print*,area_lsm(I,J)/dist(IXXRT,JYYRT,9),"ratio CONG JIANG"
 
-                 !Qian, temporary setting 
-                 if (present(runoff)) & 
-                   runoff(IXXRT,JYYRT)        = INFXSUBRT(IXXRT,JYYRT)/(1000.*dt)     ! mm --> m/s
-                 if (present(sinfil)) then
-                   SOLDRAINSUBRT(IXXRT,JYYRT) = SOLDRAIN(I,J)
-                   sinfil(IXXRT,JYYRT)        = SOLDRAINSUBRT(IXXRT,JYYRT)/(1000.*dt) ! mm --> m/s
-                 endif
-                 if (present(tinfil)) then
-                   SOLINFLSUBRT(IXXRT,JYYRT)  = SOLINFL(I,J)
-                   tinfil(IXXRT,JYYRT)        = SOLINFLSUBRT(IXXRT,JYYRT)/(1000.*dt)  ! mm --> m/s 
-                 endif
-                 if (present(preciprate)) then
-                   PRECIPSUBRT(IXXRT,JYYRT)   = PRECIPRT(I,J)
-                   preciprate(IXXRT,JYYRT)    = PRECIPSUBRT(IXXRT,JYYRT)/(1000.*dt)   ! mm --> m/s
-                 endif
-                 if (present(evaprate)) then
-                   EVAPSUBRT(IXXRT,JYYRT)     = EVAPRT(I,J)
-                   evaprate(IXXRT,JYYRT)      = EVAPSUBRT(IXXRT,JYYRT)/(1000.*dt)     ! mm --> m/s
-                 endif
-                 if (present(irrigrate)) then 
-                   IRRIGSUBRT(IXXRT,JYYRT)    = IRRIGRT(I,J)
-                   irrigrate(IXXRT,JYYRT)     = IRRIGSUBRT(IXXRT,JYYRT)/(1000.*dt)   ! mm --> m/s
-                 endif
-
-
                  !Do for soil profile loop
                  do KRT=1,NSOIL              
                    IF(SICE(I,J,KRT).gt.0) then  !...adjust for soil ice
@@ -2578,6 +2577,34 @@
                      END IF
                    END IF  !End if for soil moisture saturation excess
                  end do    !End do for soil profile loop
+
+                 !Qian, temporary setting
+                 if (present(runoff)) &
+                   runoff(IXXRT,JYYRT)        = INFXSUBRT(IXXRT,JYYRT)/(1000.*dt)     ! mm --> m/s
+                 if (present(sinfil)) then
+                   SOLDRAINSUBRT(IXXRT,JYYRT) = SOLDRAIN(I,J)
+                   sinfil(IXXRT,JYYRT)        = SOLDRAINSUBRT(IXXRT,JYYRT)/(1000.*dt) ! mm --> m/s
+                 endif
+                 if (present(tinfil)) then
+                   SOLINFLSUBRT(IXXRT,JYYRT)  = SOLINFL(I,J)
+                   tinfil(IXXRT,JYYRT)        = SOLINFLSUBRT(IXXRT,JYYRT)/(1000.*dt)  ! mm --> m/s
+                 endif
+                 if (present(preciprate)) then
+                   PRECIPSUBRT(IXXRT,JYYRT)   = PRECIPRT(I,J)
+                   preciprate(IXXRT,JYYRT)    = PRECIPSUBRT(IXXRT,JYYRT)/(1000.*dt)   ! mm --> m/s
+                 endif
+                 if (present(evaprate)) then
+                   EVAPSUBRT(IXXRT,JYYRT)     = EVAPRT(I,J)
+                   evaprate(IXXRT,JYYRT)      = EVAPSUBRT(IXXRT,JYYRT)/(1000.*dt)     ! mm --> m/s
+                 endif
+                 !if (present(evb)) then
+                 !  EVBSUBRT(IXXRT,JYYRT)      = EVBRT(I,J)
+                 !  evb(IXXRT,JYYRT)           = EVBSUBRT(IXXRT,JYYRT)
+                 !endif
+                 if (present(irrigrate)) then
+                   IRRIGSUBRT(IXXRT,JYYRT)    = IRRIGRT(I,J)
+                   irrigrate(IXXRT,JYYRT)     = IRRIGSUBRT(IXXRT,JYYRT)/(1000.*dt)   ! mm --> m/s
+                 endif
 
                  !debug loop
                  do KRT=1,NSOIL 
@@ -2680,6 +2707,15 @@
                  ! BF disaggregate soiltype information for gw-soil-coupling
                  ! TODO: move this disaggregation code line to lsm_init section because soiltype is time-invariant
                  soiltypRT(ixxrt,jyyrt) = soiltyp(i,j)
+
+                 ! C.Jiang,2020.10
+                 !print*,K1_FACTOR(i,j),slope(i,j),LAI(i,j),"Cong Jiang"
+                 !!!,shape(slope),shape(LAI),"Cong Jiang"
+                 !print*,shape(kfactor),shape(slopert),shape(LAIRT),"Cong Jiang2"
+                 kfactor(IXXRT,JYYRT) = K1_FACTOR(I,J)
+                 slopert(IXXRT,JYYRT) = slope(I,J)
+                 GINDEXRT(IXXRT,JYYRT) = GINDEX(I,J)
+                 LAIRT(IXXRT,JYYRT)   = LAI(I,J)
 
               end do
              end do

@@ -1,4 +1,4 @@
-GFORTRAN module version '0' created from kwm_string_utilities.f on Tue Sep 21 12:06:58 2021
+GFORTRAN module version '0' created from kwm_string_utilities.f on Mon Aug 22 00:49:06 2022
 MD5:93efd8f062fbee47892c090f5c2f7d52 -- If you edit this, you'll get what you deserve.
 
 (() () () () () () () () () () () () () () () () () () () () () () () ()

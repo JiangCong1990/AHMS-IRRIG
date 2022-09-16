@@ -1,16 +1,3 @@
-
-
-
-
-
-
-
-
-
-
-
-
-
 !   This is used as a coupler with the WRF model.
 MODULE MODULE_CPL_LAND
 

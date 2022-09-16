@@ -12,21 +12,21 @@
  GEO_FINEGRID_FLNM = "/home/cjiang1/NOAHMP_IN/Loess_Plateau_20km/geo_em.d01.nc" 
 
 !Specify the name of the restart file if starting from restart...comment out with '!' if not...
- RESTART_FILE  = '/home/cjiang1/NOAHMP_IN/Loess_Plateau_20km/HYDRO_RST_d1_test370_loop_10yr'
+ RESTART_FILE  = '/home/cjiang1/NOAHMP_IN/Loess_Plateau_20km/HYDRO_RST_d1_202208'
 
 !Specify the name of hydro input data file IF GWBASESWCRT == 3 OR OVCHRTSWCRT == 1  
 !To characterize surface (OVCHRTSWCRT == 1) and subsurface (GWBASESWCRT == 3) hydrological conditions
- RT2D_FLNM = "/home/cjiang1/NOAHMP_IN/Loess_Plateau_20km/hydro_input.nc_202107"
+ RT2D_FLNM = "/home/cjiang1/NOAHMP_IN/Loess_Plateau_20km/hydro_input_merit.nc"
 
 !!!! MODEL OUTPUT DATA FILES !!!!
 !Specify output name for restart file
- RESTART_OUTNAME = "/scratch/cjiang/NOAHMP_OUT/NOAHMP_OUT_20km_hydro_test354/HYDRO_RST_d"
+ RESTART_OUTNAME = "/scratch/cjiang/NOAHMP_OUT/NOAHMP_OUT_20km_hydro_test352/HYDRO_RST_d"
 
 !Specify output name for 2D Groundwater Routing model
- GW2D_OUTNAME = "/scratch/cjiang/NOAHMP_OUT/NOAHMP_OUT_20km_hydro_test354/HYDRO_OUT_GW2D_d" 
+ GW2D_OUTNAME = "/scratch/cjiang/NOAHMP_OUT/NOAHMP_OUT_20km_hydro_test352/HYDRO_OUT_GW2D_d" 
 
 !Specify output name for 2D Overland+Channel Routing model 
- RT2D_OUTNAME = "/scratch/cjiang/NOAHMP_OUT/NOAHMP_OUT_20km_hydro_test354/HYDRO_OUT_RT2D_d"
+ RT2D_OUTNAME = "/scratch/cjiang/NOAHMP_OUT/NOAHMP_OUT_20km_hydro_test352/HYDRO_OUT_RT2D_d"
 
 !!!! MODEL SETUP AND I/O CONTROL !!!!
 !Specify the domain or nest number identifier...(integer)
@@ -103,6 +103,13 @@
 !N * DT_2DTHRT = DTRT, N = 0, 1, 2, ......
  DT_2DTHRT = 3600
 
+!CASC2D-SED Erosion and Sediment Routing option index (1: erosion is simulated; !=1: otherwise)
+ indexeros = 0
+
+! Maximum number of size fractions found any of the soil types defined in the soil
+! type input grid
+ NumFracts = 3 
+
 !Specify number of cross-section
 !Specify coordinates of cross-section(s) in transects.input 
  num_transect = 8
@@ -119,12 +126,16 @@
  GW_RESTART = 0
 
 !Specify the pre-cycle number of groundwater spinup (2000)!!cong
- GwPreCycles = 10000 ! 17520000 ! 17520000
+ GwPreCycles = 2000 ! 17520000 ! 17520000
 
  GwPreDiag=false
 
  GwPreDiagInterval=8760
 
 !Irrigation module
+! 1: river irrgation and groundwater irrigation
+! 1: river irrigation only;
+! 2: groundwater irrigation only;
+! 3: river irrigation and groundwater irrigation
  IRRIG_OPTION = 1
 /

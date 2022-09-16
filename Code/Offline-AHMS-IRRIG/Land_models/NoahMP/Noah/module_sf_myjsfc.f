@@ -5,9 +5,9 @@
 !----------------------------------------------------------------------
 !
       USE MODULE_MODEL_CONSTANTS
-#ifdef DM_PARALLEL
-      USE MODULE_DM, ONLY : WRF_DM_MAXVAL
-#endif
+
+
+
 !
 !----------------------------------------------------------------------
 !
@@ -184,11 +184,11 @@ CONTAINS
 !
       NTSD=ITIMESTEP
 !
-#if ( NMM_CORE == 1 )
-     if(NTSD+1.eq.1) then
-#else
+
+
+
      IF(NTSD==1)THEN
-#endif
+
 !tgs       IF(NTSD==1)THEN
         DO J=JTS,JTE
         DO I=ITS,ITE
@@ -292,11 +292,11 @@ CONTAINS
 !          APESFC=(PSFC*1.E-5)**CAPA
           APESFC=(PSFC/P1000mb)**CAPA
 !tgs - in ARW THZ0 is not initialized when MYJSFC is called first time
-#if ( NMM_CORE == 1 )
-     if(NTSD+1.eq.1) then
-#else
+
+
+
      IF(NTSD==1)THEN
-#endif
+
 !       if(itimestep.le.1) then
           TZ0=TSK(I,J)
        else
@@ -452,11 +452,11 @@ CONTAINS
 !
             IF(USTAR<USTR)THEN
 !
-#if ( NMM_CORE == 1 )
-     if(NTSD+1.eq.1) then
-#else
+
+
+
      IF(NTSD==1)THEN
-#endif
+
 !tgs              IF(NTSD==1)THEN
                 AKMS=CXCHS
                 AKHS=CXCHS
@@ -474,11 +474,11 @@ CONTAINS
               WGHTT=AKHS*ZT*RTVISC
               WGHTQ=AKHS*ZQ*RQVISC
 !
-#if ( NMM_CORE == 1 )
-     if(NTSD+1>1) then
-#else
+
+
+
      IF(NTSD>1)THEN
-#endif
+
 !tgs              IF(NTSD>1)THEN
                 THZ0=((WGHTT*THLOW+THS)/(WGHTT+1.)+THZ0)*0.5
                 QZ0=((WGHTQ*QLOW+QS)/(WGHTQ+1.)+QZ0)*0.5
@@ -499,11 +499,11 @@ CONTAINS
               WGHTT=AKHS*ZT*RTVISC
               WGHTQ=AKHS*ZQ*RQVISC
 !
-#if ( NMM_CORE == 1 )
-     if(NTSD+1>1) then
-#else
+
+
+
      IF(NTSD>1)THEN
-#endif
+
 
 !tgs              IF(NTSD>1)THEN
                 THZ0=((WGHTT*THLOW+THS)/(WGHTT+1.)+THZ0)*0.5
@@ -1117,44 +1117,6 @@ CONTAINS
       ENDDO
       ENDDO
 !----------------------------------------------------------------------
-#if (NMM_CORE == 1)
-!
-      IF(.NOT.RESTART)THEN
-!       CALL WRF_GET_DM_COMMUNICATOR(MPI_COMM_COMP)
-!       MAXLOC_IVGTYP=MAXVAL(IVGTYP)
-!       CALL MPI_ALLREDUCE(MAXLOC_IVGTYP,MAXGBL_IVGTYP,1,MPI_INTEGER   &
-!    &,                    MPI_MAX,MPI_COMM_COMP,IRECV)
-        MAXGBL_IVGTYP=MAXVAL(IVGTYP)
-#ifdef DM_PARALLEL
-        CALL WRF_DM_MAXVAL(MAXGBL_IVGTYP,IDUM,JDUM)
-#endif
-!
-        IF (MAXGBL_IVGTYP<13) THEN
-          DO J=JTS,JTE
-          DO I=ITS,ITE
-            SM=SEAMASK(I,J)-1.
-            IF(SM+XICE(I,J)<0.5)THEN
-              Z0(I,J)=VZ0TBL(IVGTYP(I,J))
-            ENDIF
-          ENDDO
-          ENDDO
-!
-        ELSE
-!
-          DO J=JTS,JTE
-          DO I=ITS,ITE
-            SM=SEAMASK(I,J)-1.
-            IF(SM+XICE(I,J)<0.5)THEN
-              Z0(I,J)=VZ0TBL_24(IVGTYP(I,J))
-            ENDIF
-          ENDDO
-          ENDDO
-!
-        ENDIF ! Vegtype check
-!
-      ENDIF ! Restart check
-
-#endif
 !----------------------------------------------------------------------
       IF(.NOT.RESTART)THEN
         DO J=JTS,JTE

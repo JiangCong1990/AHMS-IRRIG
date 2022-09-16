@@ -415,7 +415,7 @@ contains
        xstart, xend,                                                   &
        ystart, yend,                                                   &
        iswater, vegtyp, soltyp, terrain, tbot_2d, latitude, longitude,xland,seaice,msftx,msfty,&
-       slopert,ielev,gwporos)
+       slopert,GINDEX,ielev,gwporos,K1_FACTOR)
     implicit none
     character(len=*),          intent(in)  :: wrfinput_flnm
     integer,                   intent(in)  :: xstart, xend, ystart, yend
@@ -430,8 +430,10 @@ contains
     real,    dimension(xstart:xend,ystart:yend), intent(out) :: msftx
     real,    dimension(xstart:xend,ystart:yend), intent(out) :: msfty
     real,    dimension(xstart:xend,ystart:yend), optional, intent(inout) :: slopert  ! Qian, 2018.08
+    real,    dimension(xstart:xend,ystart:yend), optional, intent(inout) :: GINDEX   ! C.Jiang,2022.05
     real,    dimension(xstart:xend,ystart:yend), optional, intent(inout) :: ielev    ! C.Jiang,2019.10
     real,    dimension(xstart:xend,ystart:yend), optional, intent(inout) :: gwporos  ! C.Jiang,2021.05
+    real,    dimension(xstart:xend,ystart:yend), optional, intent(inout) :: K1_FACTOR! C.Jiang,2021.05
     character(len=256) :: units
     integer :: ierr
     integer :: ncid
@@ -511,6 +513,11 @@ contains
         call get_2d_netcdf("SLOPERT", ncid, slopert, units, xstart, xend, ystart, yend, FATAL, ierr)
         if (ierr /= 0) print*, 'Did not find SLOPERT, only need for iopt_run == 9/10'
     endif
+    ! read gully index
+    if (present(GINDEX)) then
+       call get_2d_netcdf("GINDEX", ncid, GINDEX, units, xstart, xend, ystart, yend, FATAL, ierr)
+       if (ierr /= 0) print*, 'Did not find GINDEX, only need for iopt_run == 9/10'
+    endif
 
     ! read subbasin 
     if (present(ielev)) then 
@@ -524,6 +531,11 @@ contains
         if (ierr /= 0) print*, 'Did not find gwporos, only need for iopt_run == 9/10'
     endif
 
+    ! read k factor, [-]
+    if (present(K1_FACTOR)) then
+        call get_2d_netcdf("K1_FACTOR", ncid, K1_FACTOR, units, xstart, xend, ystart, yend, FATAL, ierr)
+        if (ierr /= 0) print*, 'Did not find K1_FACTOR, only need for iopt_run == 9/10'
+    endif
 
     ! Close the NetCDF file
     ierr = nf90_close(ncid)
@@ -607,6 +619,97 @@ contains
 
 
   end subroutine read_mmf_runoff
+
+!---------------------------------------------------------------------------------------------------------
+!---------------------------------------------------------------------------------------------------------
+
+  subroutine read_agriculture_data(agdata_flnm,                            &
+       xstart, xend,                                                      &
+       ystart, yend,                                                      &
+       irfract,                                                           &   
+       sifract,                                                           &
+       mifract,                                                           &
+       fifract)
+
+    implicit none
+    character(len=*),                            intent(in)  :: agdata_flnm
+    integer,                                     intent(in)  :: xstart, xend, ystart, yend
+    real,    dimension(xstart:xend,ystart:yend), intent(out) :: irfract   
+    real,    dimension(xstart:xend,ystart:yend), intent(out) :: sifract    
+    real,    dimension(xstart:xend,ystart:yend), intent(out) :: mifract    
+    real,    dimension(xstart:xend,ystart:yend), intent(out) :: fifract
+
+    character(len=24)                                        :: name
+    integer                                                  :: ierr,iret
+    integer                                                  :: ncid, varid
+    integer                                                  :: rank
+
+
+
+
+
+    rank = 0
+
+
+
+    ! Open the NetCDF file.
+    if (rank == 0) write(*,'("agdata_flnm: ''", A, "''")') trim(agdata_flnm)
+
+
+
+    ierr = nf90_open(agdata_flnm, NF90_NOWRITE, ncid)
+
+    if (ierr /= 0) then
+       write(*,'("read_agriculture data:  Problem opening agdata file: ''", A, "''")') trim(agdata_flnm)
+
+
+
+
+       stop
+    endif
+
+
+! Get irrigation fraction
+    name = "IRFRACT"
+    iret = nf90_inq_varid(ncid,  name,  varid)
+    if (iret == 0) then
+      ierr = nf90_get_var(ncid, varid, irfract, start=(/xstart,ystart/), count=(/xend-xstart+1,yend-ystart+1/))
+    else
+      write(*,*) "MODULE_HRLDAS_NETCDF_IO:  Problem finding variable '"//trim(name)//"' in NetCDF file. Using default values."
+    endif
+
+! Get sprinkler irrigation fraction
+    name = "SIFRACT"
+    iret = nf90_inq_varid(ncid,  name,  varid)
+    if (iret == 0) then
+      ierr = nf90_get_var(ncid, varid, sifract, start=(/xstart,ystart/), count=(/xend-xstart+1,yend-ystart+1/))
+    else
+      write(*,*) "MODULE_HRLDAS_NETCDF_IO:  Problem finding variable '"//trim(name)//"' in NetCDF file. Using default values."
+    endif
+
+! Get sprinkler irrigation fraction
+    name = "MIFRACT"
+    iret = nf90_inq_varid(ncid,  name,  varid)
+    if (iret == 0) then
+      ierr = nf90_get_var(ncid, varid, mifract, start=(/xstart,ystart/), count=(/xend-xstart+1,yend-ystart+1/))
+    else
+      write(*,*) "MODULE_HRLDAS_NETCDF_IO:  Problem finding variable '"//trim(name)//"' in NetCDF file. Using default values."
+    endif
+
+! Get sprinkler irrigation fraction
+    name = "FIFRACT"
+    iret = nf90_inq_varid(ncid,  name,  varid)
+    if (iret == 0) then
+      ierr = nf90_get_var(ncid, varid, fifract, start=(/xstart,ystart/), count=(/xend-xstart+1,yend-ystart+1/))
+    else
+      write(*,*) "MODULE_HRLDAS_NETCDF_IO:  Problem finding variable '"//trim(name)//"' in NetCDF file. Using default values."
+    endif
+
+! Close the NetCDF file
+    ierr = nf90_close(ncid)
+    if (ierr /= 0) stop "MODULE_NOAHLSM_HRLDAS_INPUT:  read_agriculture_data: NF90_CLOSE"
+
+  end subroutine read_agriculture_data
 
 !---------------------------------------------------------------------------------------------------------
 !---------------------------------------------------------------------------------------------------------

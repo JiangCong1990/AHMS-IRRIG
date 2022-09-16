@@ -282,3 +282,35 @@
            0.0,    0.0,    0.0,    0.0,    0.0,    0.0,    0.0,    0.0,    0.0,    0.0,    0.0,    0.0,    0.0,    0.0,    0.0,    0.0,    0.0,    0.0,    0.0,    0.0,
            0.0,    0.0,    0.0,    0.0,    0.0,    0.0,    0.0,    0.0,    0.0,    0.0,    0.0,    0.0,    0.0,    0.0,    0.0,    0.0,    0.0,    0.0,    0.0,    0.0,
 /
+&noahmp_irrigation_parameters
+IRR_FRAC   = 0.25       ! irrigation Fraction (12.08.2022,It must be greater than 0.1 to remove some edge meshes)
+IRR_HAR    = 20         ! number of days before harvest date to stop irrigation 
+IRR_LAI    = 0.60       ! Minimum lai to trigger irrigation
+IRR_MAD    = 0.50       ! management allowable deficit (0-1)
+FILOSS     = 0.10       ! fraction of flood irrigation loss (0-1) 
+SPRIR_RATE = 6.40       ! mm/h, sprinkler irrigation rate
+MICIR_RATE = 1.38       ! mm/h, micro irrigation rate
+FIRTFAC    = 1.0        ! flood application rate factor
+IR_RAIN    = 1.00       ! maximum precipitation to stop irrigation trigger
+/
+
+&noahmp_crop_parameters
+
+ ! NCROP = 5 
+ !  1: Corn
+ !  2: Soybean
+ !  3: Sorghum
+ !  4: Rice
+ !  5: Winter wheat
+
+DEFAULT_CROP = 0                                      ! The default crop type(1-5); if zero, use generic dynamic vegetation 
+
+!----------------------------------------------------------
+!                1       2       3       4       5
+!----------------------------------------------------------
+ 
+PLTDAY     =    111,    131,    111,    111,    111,  ! Planting date
+HSDAY      =    300,    280,    300,    300,    300,  ! Harvest date
+PLANTPOP   =   78.0,   78.0,   78.0,   78.0,   78.0,  ! Plant density [per ha] - used?
+IRRI       =    0.0,    0.0,    0.0,    0.0,    0.0,  ! Irrigation strategy 0= non-irrigation 1=irrigation (no water-stress)
+/

@@ -65,6 +65,22 @@ module module_rt_rt2d
       rt2d(did)%evap         = 0.
       rt2d(did)%streamflux   = 0.
       rt2d(did)%veloc        = 0.
+
+      ! C.Jiang,2020.10
+      rt2d(did)%LAI          = 0.
+      rt2d(did)%slope        = 0.
+      rt2d(did)%GINDEX       = 0.
+      rt2d(did)%kfactor      = 0.
+      rt2d(did)%qsKR         = 0.
+      rt2d(did)%qsEH         = 0.
+      rt2d(did)%SusSed       = 0.
+      rt2d(did)%DepSed       = 0.
+      rt2d(did)%ErodSed      = 0.
+      rt2d(did)%SedFlux      = 0.
+      rt2d(did)%t_SedFlux    = 0.
+      rt2d(did)%SedConc      = 0.
+      rt2d(did)%T_SedConc    = 0.
+
       rt2d(did)%istreamflux  = 0 
       rt2d(did)%ac_precip    = 0.
       rt2d(did)%ac_evap      = 0.
@@ -162,11 +178,11 @@ module module_rt_rt2d
             if (rt2d(did)%ltype(i,j) .eq. 1) then
                bankin = rt2d(did)%bank(i,j) 
                ! C.Jiang,2020.10 Bank minimun 2.0
-               rt2d(did)%bank(i,j) = min(30., max(2.0, bankin))  
+               rt2d(did)%bank(i,j) = min(30., max(2.0, bankin))
 
-               banktmp = rt2d(did)%bank(i,j) * 0.7                ! Qian, assumed 70% stage in preprocessing
+               banktmp = rt2d(did)%bank(i,j) * 1.0                ! Qian, assumed 70% stage in preprocessing (*0.7)
                rt2d(did)%disch(i,j) = (banktmp/0.6)**(1./0.4) 
-               rt2d(did)%width(i,j) = 10.0*(rt2d(did)%disch(i,j)**0.5)
+               rt2d(did)%width(i,j) = 5.0*(rt2d(did)%disch(i,j)**0.5)
 
 !C.Jiang,to change depth of bank
                rt2d(did)%bank(i,j)  = 0.6*(rt2d(did)%disch(i,j)**0.3)
@@ -205,10 +221,10 @@ module module_rt_rt2d
                ! rt2d(did)%fbed(i,j)  = min(1., (rt2d(did)%width(i,j)/dx)**0.6)
                rt2d(did)%fbed(i,j)  = min(1., (rt2d(did)%width(i,j)/dx)**0.5)
 
-!               if (rt2d(did)%ielev(i,j) .eq. 2) then
-!                 rt2d(did)%fbed(i,j)  = min(1., (rt2d(did)%width(i,j)/dx)**0.5)
-!               elseif (rt2d(did)%ielev(i,j) .eq. 3) then
-!                 rt2d(did)%fbed(i,j)  = min(1., (rt2d(did)%width(i,j)/dx)**0.5)
+!               if (rt2d(did)%ielev(i,j) .ge. 4) then
+!                 rt2d(did)%fbed(i,j)  = min(1., (rt2d(did)%width(i,j)/dx)**0.8)
+!               elseif (rt2d(did)%ielev(i,j) .eq. 1) then
+!                 rt2d(did)%fbed(i,j)  = min(1., (rt2d(did)%width(i,j)/dx)**0.8)
 !               else
 !                 rt2d(did)%fbed(i,j)  = min(1., (rt2d(did)%width(i,j)/dx)**0.5)
 !               endif
@@ -493,7 +509,7 @@ module module_rt_rt2d
   end subroutine rt2d_ini
 
 ! ------------------------------------------------------------
-  subroutine rt2d_allocate(did, ix, jx, ixrt, jxrt, nsoil)
+  subroutine rt2d_allocate(did, ix, jx, ixrt, jxrt, nsoil, NumFracts)
     implicit none
 
       INTEGER, INTENT(IN) :: did       ! domain number
@@ -502,6 +518,7 @@ module module_rt_rt2d
       INTEGER, INTENT(IN) :: ixrt      ! number of i-grid for Hydro domain
       INTEGER, INTENT(IN) :: jxrt      ! number of j-grid for Hydro domain
       INTEGER, INTENT(IN) :: nsoil     ! number of soil layer, from WRF
+      INTEGER, INTENT(IN) :: NumFracts ! number of soil fraction
 
       INTEGER :: ntran
       IF (rt2d(did)%allo_status .eq. 1) RETURN
@@ -582,6 +599,11 @@ module module_rt_rt2d
       allocate( rt_domain(did)%PRECIPRT  (IX,JX) )       ! preciptation, mm
       allocate( rt_domain(did)%EVAPRT    (IX,JX) )       ! evaporation, mm
       allocate( rt_domain(did)%IRRIG     (IX,JX) )       ! evaporation, mm
+      ! C.Jiang,2020.10
+      allocate( rt_domain(did)%slope     (IX,JX) )       !
+      allocate( rt_domain(did)%GINDEX    (IX,JX) )       !
+      allocate( rt_domain(did)%LAI       (IX,JX) )       !
+      allocate( rt_domain(did)%K1_FACTOR (IX,JX) )       !
 
       rt_domain(did)%TERRAIN     = 0.0
       rt_domain(did)%dist_lsm    = 0.0
@@ -607,12 +629,18 @@ module module_rt_rt2d
       rt_domain(did)%gwhead      = 0.
       rt_domain(did)%PRECIPRT    = 0.
       rt_domain(did)%EVAPRT      = 0. 
+      ! c.jiang, add
       rt_domain(did)%IRRIG       = 0.
+      rt_domain(did)%slope       = 0.
+      rt_domain(did)%GINDEX      = 0.
+      rt_domain(did)%LAI         = 0.
+      rt_domain(did)%K1_FACTOR   = 0.
 
 !     allocate aggergate/disaggregate array 
       allocate( rt_domain(did)%SH2OAGGRT    (NSOIL) )      ! aggregate for SH20  
       allocate( rt_domain(did)%STCAGGRT     (NSOIL) )      ! aggregate for STC
       allocate( rt_domain(did)%SMCAGGRT     (NSOIL) )      ! aggregate for SMC
+      allocate( rt_domain(did)%IRRIGAGGRT   (NSOIL) )      ! aggregate for SMC
       allocate( rt_domain(did)%INFXSAGGRT   (IXRT,JXRT) )  ! aggregate for INFXSRT
 !      allocate( rt_domain(did)%GWHEADAGGRT  (IXRT,JXRT) )  ! aggregate for gwhead
       ! other aggerate factors:
@@ -620,6 +648,7 @@ module module_rt_rt2d
       rt_domain(did)%SH2OAGGRT   = 0.
       rt_domain(did)%STCAGGRT    = 0.
       rt_domain(did)%SMCAGGRT    = 0.
+      rt_domain(did)%IRRIGAGGRT  = 0.
       rt_domain(did)%INFXSAGGRT  = 0.
 !      rt_domain(did)%GWHEADAGGRT = 0.
 
@@ -707,6 +736,22 @@ module module_rt_rt2d
       allocate(rt2d(did)%runoff(ixrt,jxrt))       ! infiltration excess runoff, m/s
       allocate(rt2d(did)%streamflux(ixrt,jxrt))   ! stream flux in grid, m3/s
       allocate(rt2d(did)%veloc(ixrt,jxrt))
+
+      allocate(rt2d(did)%LAI(ixrt,jxrt))   !
+      allocate(rt2d(did)%slope(ixrt,jxrt))   !
+      allocate(rt2d(did)%GINDEX(ixrt,jxrt))   !
+      allocate(rt2d(did)%kfactor(ixrt,jxrt))   !
+!      allocate(rt2d(did)%veloc(ixrt,jxrt))        !
+      allocate(rt2d(did)%qsKR(ixrt,jxrt))         ! 
+      allocate(rt2d(did)%SedConc(NumFracts,ixrt,jxrt))      !
+      allocate(rt2d(did)%T_SedConc(ixrt,jxrt))    !
+      allocate(rt2d(did)%qsEH(NumFracts,ixrt,jxrt))         !
+      allocate(rt2d(did)%SusSed(NumFracts,ixrt,jxrt))       !
+      allocate(rt2d(did)%DepSed(NumFracts,ixrt,jxrt))       !
+      allocate(rt2d(did)%ErodSed(NumFracts,ixrt,jxrt))      !
+      allocate(rt2d(did)%SedFlux(NumFracts,ixrt,jxrt))      !
+      allocate(rt2d(did)%t_SedFlux(ixrt,jxrt))    !
+
       allocate(rt2d(did)%istreamflux(ixrt,jxrt))  ! stream flux direction, 1 - 8
       allocate(rt2d(did)%disch(ixrt,jxrt))        ! running mean streamflux throungh cell, m3/s
       allocate(rt2d(did)%hlakeav(ixrt,jxrt))      ! annual average hlake for gw spinup mode
@@ -741,6 +786,17 @@ module module_rt_rt2d
       rt2d(did)%runoff      = 0.
       rt2d(did)%streamflux  = 0.
       rt2d(did)%veloc       = 0.
+
+      rt2d(did)%qsKR        = 0.
+      rt2d(did)%qsEH        = 0.
+      rt2d(did)%SusSed      = 0.
+      rt2d(did)%DepSed      = 0.
+      rt2d(did)%ErodSed     = 0.
+      rt2d(did)%SedFlux     = 0.
+      rt2d(did)%t_SedFlux   = 0.
+      rt2d(did)%SedConc     = 0.
+      rt2d(did)%T_SedConc   = 0.
+
       rt2d(did)%istreamflux = 0
       rt2d(did)%disch       = 0.
 !-------------------------------------
@@ -755,10 +811,15 @@ module module_rt_rt2d
     
 ! if (nlst_rt(did)%waterusemodule .EQ. 1) then
        allocate(rt2d(did)%irg(ixrt,jxrt))        ! total irrigation flux, m/s
+       allocate(rt2d(did)%actirg(ixrt,jxrt))        ! actual irrgation, m/s
+       allocate(rt2d(did)%irgswfract(ixrt,jxrt)) ! area irrigated with surface water expressed as 
+                                                 ! percentage of total area equipped for irrigation
        allocate(rt2d(did)%irgrw(ixrt,jxrt))      ! irrigation from river, m/s
        allocate(rt2d(did)%irggw(ixrt,jxrt))      ! irrigation from groundwater, m/s
        
        rt2d(did)%irg          = 0.
+       rt2d(did)%actirg          = 0.
+       rt2d(did)%irgswfract   = 0.
        rt2d(did)%irgrw        = 0.
        rt2d(did)%irggw        = 0.     
 
@@ -802,6 +863,7 @@ module module_rt_rt2d
          allocate(rt2d(did)%ktran(500,ntran))
          allocate(rt2d(did)%fluxtran(ntran))      ! flux of specified transects
          allocate(rt2d(did)%fluxtranav(ntran))    ! averaging flux of specified transects
+         allocate(rt2d(did)%sedfluxtranav(ntran))    ! averaging flux of specified transects
          rt2d(did)%atran    = 0.
          rt2d(did)%xtran    = 0.
          rt2d(did)%ytran    = 0.
@@ -811,6 +873,7 @@ module module_rt_rt2d
          rt2d(did)%ktran    = 0
          rt2d(did)%fluxtran = 0.
          rt2d(did)%fluxtranav = 0.
+         rt2d(did)%sedfluxtranav = 0.
          rt2d(did)%count_flowout = 0
 #ifdef MPP_LAND
          endif
@@ -882,7 +945,10 @@ module module_rt_rt2d
                                    ,method  &
                                    ,flx_ocn, flx_fix,    rsat        &
                                    ,cgiflux, cuiflux,    cglflux,    &
-                                   sdep ,did,veloc)
+                                   sdep ,did,t_veloc,                &
+                                   t_qsKR, indexeros, NumFracts,     &
+                                   SusSed, DepSed, ErodSed, SedFlux, &
+                                   t_SedFlux, t_qsEH,SedConc,T_SedConc)
                                   
 
 ! Record of revisions:
@@ -921,6 +987,12 @@ module module_rt_rt2d
                                         !method=1, shepherd 
                                         !method=2, matinv
                                         !method=3, sparse
+
+    INTEGER, INTENT(IN) :: indexeros    ! Erosion option index (1: erosion is simulated; !=1: otherwise)
+    INTEGER, INTENT(IN) :: NumFracts    ! Maximum number of size fractions found any of 
+                                        ! the soil types defined in the soil
+                                        ! type input grid
+
     REAL,    INTENT(OUT) :: enegsub     !total fix for stream, m3/s
     REAL,    INTENT(OUT) :: totosub     !total streamflux from land to ocean, m3/s
 
@@ -944,7 +1016,20 @@ module module_rt_rt2d
                          hlake       &  !elevation of river/lake water surface, m 
                         ,streamflux  &  !stream flux out of cell, m3/s
                         ,fbed        &
-                        ,veloc          !velocity of flow, m/s
+                        ,t_veloc          !velocity of flow, m/s
+
+    REAL,    INTENT(INOUT),   DIMENSION(ix, jx)    :: &
+                         t_qsKR,    &     ! Transport capacity overland
+                         T_SedConc      !
+    REAL,    INTENT(INOUT), DIMENSION(NumFracts,ix, jx) :: &
+                         t_qsEH,  &  ! Transport capacity channel, m3 
+                         SusSed,  &  ! Suspended volume m3 of size fraction n at cell (i,j)
+                         DepSed,  &  ! Deposited volume m3 of size fraction n at cell (i,j) 
+                         ErodSed, &  ! Eroded volume m3 of size fraction n at cell (i,j)
+                         SedFlux, &  ! Sediment flux m3/s
+                         SedConc     ! Sediment concentration mg/l  
+    REAL,    INTENT(INOUT), DIMENSION(ix, jx) :: &
+                         t_SedFlux   ! Total sediment flux at cell, m3/s
 
     INTEGER, INTENT(INOUT), DIMENSION(ix, jx) :: &
                          istreamflux    !quadrant for streamflux, 1-8
@@ -971,7 +1056,7 @@ module module_rt_rt2d
     REAL, SAVE, ALLOCATABLE :: hlakeprev1(:,:)
     REAL, SAVE, ALLOCATABLE :: hlakeprev2(:,:)
 
-    INTEGER :: i, j, k, n, i2, j2, n2, koff, ii, jj, ti, tj
+    INTEGER :: i, j, k, n, i2, j2, n2, koff, ii, jj, ti, tj, SizeFr, i3, j3, kk
     INTEGER :: m, m2, itmax
     INTEGER :: niter, itol, itlin, iter
     INTEGER, SAVE :: iit
@@ -980,8 +1065,8 @@ module module_rt_rt2d
     REAL    :: zloctot, dtot, dtoa, tareal, dtmp, distance, mindis
     REAL    :: zsource, sabsi, zz,                          &
                zdepr, zwidr, zcrosr, zdepl, zwidl, zcrosl,  &
-               zrough, powslope, powconst, zf, zs, f , sabs,hsdep, evap_flux
-    REAL(kind=8) :: tol, errlin,zwei,rlim     
+               zrough, powslope, powconst, zf, zs, f , sabs,hsdep, evap_flux, gi_zs, gi2_zs
+    REAL(kind=8) :: tol, errlin,zwei,rlim,ravail     
     
     REAL,   DIMENSION(8)                :: dists, dista
     REAL,   DIMENSION(ix*jx)            :: zdt
@@ -1003,6 +1088,14 @@ module module_rt_rt2d
     REAL(kind=8), DIMENSION(:),   ALLOCATABLE :: vec_r8  ! sparse 
 
     INTEGER :: its, ite, jts, jte
+    ! SEDIMENT
+    INTEGER :: ifrom, ito, iout, jfrom, jto, jout, num
+    INTEGER, DIMENSION(ix,jx)           :: tistreamflux  ! every direction of streamflux
+    REAL, DIMENSION(ix,jx)           :: veloc, qsKR
+    REAL, DIMENSION(NumFracts,ix, jx) :: qsEH
+    REAL, DIMENSION(ix,jx,8)         :: tstreamflux
+    REAL    :: sf_f,sf_t
+
 
     ! anticlockwise from E
     INTEGER, DIMENSION(8) :: iqq, jqq, kop
@@ -1176,30 +1269,88 @@ module module_rt_rt2d
 
      do j = jts, jte
        do i = its, ite
-         if (rt2d(did)%ielev(i,j) .eq. 4 .and. bank(i,j) .ge. 3.0 ) then
-            rt2d(did)%irgrw(i,j)=rt2d(did)%irg(i,j)
+!      inital irgrw and irggw
+       rt2d(did)%irgrw(i,j) = 0.
+       rt2d(did)%irggw(i,j) = 0.
+       rt2d(did)%actirg(i,j) = 0.
+          if (bank(i,j) .ge. 3.0 .and. (rt2d(did)%ielev(i,j) .ge. 2.0)) then
+             if (rt2d(did)%irg(i,j) .gt. 0.0) then
+               ! river
+               rt2d(did)%irgrw(i,j) = rt2d(did)%irg(i,j)*rt2d(did)%irgswfract(i,j)
+               ravail = abs(hlake(i,j)-(elev(i,j)-bank(i,j))) / dt * fbed(i,j) + max(hlake(i,j)-elev(i,j),0.) / dt * (1.0-fbed(i,j))
+               if (ravail .gt. rt2d(did)%irgrw(i,j))then 
+                 ravail = ravail-rt2d(did)%irgrw(i,j)
+               else
+                 ravail = 0.
+                 rt2d(did)%irgrw(i,j)=ravail
+               endif
+               ! groundwater
+               rt2d(did)%irggw(i,j) = rt2d(did)%irg(i,j)*(1.0-rt2d(did)%irgswfract(i,j))
+               !
+               rt2d(did)%actirg(i,j) = rt2d(did)%irgrw(i,j) + rt2d(did)%irggw(i,j)
+               ! irg to zero as condation
+               rt2d(did)%irg(i,j) = 0.
+             endif
            do k = 1, 8
              i2 = min(ite, max(its, i + iqq(k)))
              j2 = min(jte, max(jts, j + jqq(k)))
-               if(rt2d(did)%ielev(i2,j2) .eq. 4 .and. bank(i2,j2) .lt. 3.0) then
-                 rt2d(did)%irgrw(i,j) = rt2d(did)%irgrw(i,j)+rt2d(did)%irg(i2,j2)
-                 rt2d(did)%irg(i2,j2) = 0.
+               if((bank(i2,j2) .lt. 3.0) .and. (rt2d(did)%ielev(i2,j2) .ge. 2.0).and.(ravail.gt.0.).and.(rt2d(did)%irg(i2,j2).gt.0.)) then
+                 if (rt2d(did)%irg(i2,j2) .gt. 0.0) then
+                   if (ravail .gt. rt2d(did)%irg(i2,j2)*rt2d(did)%irgswfract(i2,j2))then
+                     ravail = ravail-rt2d(did)%irg(i2,j2)*rt2d(did)%irgswfract(i2,j2)
+                     rt2d(did)%irgrw(i,j) = rt2d(did)%irgrw(i,j)+rt2d(did)%irg(i2,j2)*rt2d(did)%irgswfract(i2,j2)
+                     rt2d(did)%actirg(i2,j2) = rt2d(did)%irg(i2,j2)*rt2d(did)%irgswfract(i2,j2)
+                   else
+                     ravail = 0.
+                     rt2d(did)%irgrw(i,j) = rt2d(did)%irgrw(i,j) + ravail
+                     rt2d(did)%actirg(i2,j2) = ravail
+                   endif
+                   
+                   ! (i2,j2) 
+                   rt2d(did)%irggw(i2,j2) = rt2d(did)%irg(i2,j2)*(1.0-rt2d(did)%irgswfract(i2,j2))
+                   !
+                   rt2d(did)%actirg(i2,j2) = rt2d(did)%actirg(i2,j2) + rt2d(did)%irggw(i2,j2)
+                   rt2d(did)%irg(i2,j2) = 0.
+                 endif
+                 
+!                if((rt2d(did)%ielev(i,j) .eq. 4.0) .and. (rt2d(did)%ielev(i2,j2) .eq. 4.0)) then
+!                 do kk = 1, 8
+!                   i3 = min(ite, max(its, i2 + iqq(kk)))
+!                   j3 = min(jte, max(jts, j2 + jqq(kk)))
+
+!                   if((bank(i3,j3) .le. 3.0) .and. (rt2d(did)%ielev(i3,j3) .eq. 4.0)) then
+!                     if (rt2d(did)%irg(i3,j3) .gt. 0.0) then
+!                       rt2d(did)%irgrw(i,j) = rt2d(did)%irgrw(i,j)+rt2d(did)%irg(i3,j3)*rt2d(did)%irgswfract(i3,j3)
+                       ! (i3,j3)
+!                       rt2d(did)%irggw(i3,j3) = rt2d(did)%irg(i3,j3)*(1.0-rt2d(did)%irgswfract(i3,j3))
+                       !
+!                       rt2d(did)%irg(i3,j3) = 0.
+!                      endif
+!                   endif
+!                 enddo
+!                endif
+                  
                endif
            enddo
-         elseif(rt2d(did)%ielev(i,j) .ne. 4) then
-           rt2d(did)%irgrw(i,j) = 0.
+!         elseif(rt2d(did)%ielev(i,j) .ne. 4) then
          endif
       enddo
     enddo
 
-!     do j = jts, jte
-!       do i = its, ite
+    do j = jts, jte
+      do i = its, ite
 !         if (ltype(i,j) .ge. 1 .and. bank(i,j) .lt. 3.0 ) then
-!           rt2d(did)%irggw(i,j) = rt2d(did)%irg(i,j)
-!         endif
-!      enddo
-!    enddo
+         if ((rt2d(did)%ielev(i,j) .ge. 2.0) .and. (rt2d(did)%irg(i,j) .gt. 0.)) then
+           rt2d(did)%irggw(i,j) = rt2d(did)%irg(i,j)*(1.0-rt2d(did)%irgswfract(i,j))
+           rt2d(did)%actirg(i,j) = rt2d(did)%irggw(i,j)
+         endif
+!        if(abs(rt2d(did)%irggw(i,j)).gt.0) then
+!          print*,rt2d(did)%irggw(i,j),"rt2d(did)%irggw(i,j)"
+!        endif
+        ! rt2d(did)%irggw(i,j) = 0.
 
+      enddo
+    enddo
 
 !Central difference
 !-------------------------------------------------
@@ -1568,7 +1719,8 @@ if5:                  if (method .eq. 1) then          ! shepherd
        totosub = 0.
        call zero_rt (streamflux,  nij)
        call zero_rt (work, nij)
-!       call zeroi_rt(istreamflux, nij)
+       call zeroi_rt(istreamflux, nij)
+       call zeroi_rt(tistreamflux, nij)
        
        do j = jts, jte
           do i = its, ite
@@ -1598,9 +1750,25 @@ if5:                  if (method .eq. 1) then          ! shepherd
                        if (zs .gt. 0.) then
                           streamflux(i,j) = streamflux(i,j) + zs
                           work(i,j) = work(i,j) + k * zs
+                          ! C.Jiang, 2022.01, save every direction and flux of flow
+                          tstreamflux(i,j,k) = zs
+                          if (tistreamflux(i,j).lt.0.1) then
+                             tistreamflux(i,j) = k
+                          else
+                             tistreamflux(i,j) = 10*tistreamflux(i,j) + k
+                          endif
+
                        else
                           streamflux(i2,j2) = streamflux(i2,j2) - zs
                           work(i2,j2) = work(i2,j2) - kop(k) * zs
+
+                          tstreamflux(i2,j2,kop(k)) = -zs
+                          if (tistreamflux(i2,j2).lt.0.1) then
+                             tistreamflux(i2,j2) = kop(k)
+                          else
+                             tistreamflux(i2,j2) = 10*tistreamflux(i2,j2) + kop(k)
+                          endif
+                   
                        endif
 
                    endif
@@ -1632,23 +1800,174 @@ if5:                  if (method .eq. 1) then          ! shepherd
           end do
        end do
 
-       do j=jts,jte
-          do i=its, ite
-             if ( ltype(i,j).ne.1 .or.          &
-               ( streamflux(i,j).lt.29.99 .and. &
-                 hlake(i,j).le.elev(i,j) ) ) then
-               veloc(i,j) = -999.
-             else
-               zdepr  = max (0., hlake(i,j)-(elev(i,j)-bank(i,j)))
-               zdepr = min (zdepr, depmax)
-               zcrosr = zdepr * width(i,j)
-               zdepl  = max (0., hlake(i,j)- elev(i,j))
-               zdepl = min (zdepl, depmax)
-               zcrosl = zdepl * max (0., dx(i,j)-width(i,j))
-               veloc(i,j) = streamflux(i,j) / max (.001, zcrosr+zcrosl)
-          endif
-        enddo
-      enddo
+       iout = -9999
+       jout = -9999
+       do j = jts, jte
+          do i = its, ite
+                    
+                    ! initialize t_SedFlux, t_veloc, t_qsKR and t_qsEH = 0 in dt
+                    ! initialize veloc, qsKR, qsEH = 0 
+                                                                            
+                    t_SedFlux(i,j) = 0.
+                    t_veloc(i,j) = 0.
+                    veloc(i,j) = 0.
+                    qsKR(i,j) = 0.
+                    do SizeFr = 1, NumFracts
+                       t_qsEH(SizeFr,i,j) = 0.
+                       qsEH(SizeFr,i,j) = 0.
+                       SedFlux(SizeFr,i,j) = 0.
+                    enddo
+
+                    if (ltype(i,j) .ge. 1) then
+                       
+                       if ((indexeros .ge. 1) .and. (streamflux(i,j) .ge. 0.0)) then
+
+                       ! Checking which is the receiving/outgoing cell
+                       !k = istreamflux(i,j)
+                       num = tistreamflux(i,j)
+                       do while (num.gt.0.1)
+                       k = MOD(num, 10)
+                       num = num / 10
+                       if (tstreamflux(i,j,k).gt.0.) then
+
+                       ifrom = i
+                       jfrom = j
+                       ito = i + iqq(k)
+                       jto = j + jqq(k)
+                       i2  = ito
+                       j2  = jto
+                      
+                       if ( ltype(ito,jto) .eq. 2) then
+                          iout = ito
+                          jout = jto
+                       endif
+
+                       ! Sediment is not routed FROM a channel cell, only
+                       ! from an overland cell. Sediment can be routed TO a channel cell
+
+                       ! Friction Slope (Sf) and Velocity of flow
+                       if (jfrom .eq. jto) then
+                          dists(k) = 0.5*(dx(i,j)+dx(i2,j2))
+                          dista(k) = 0.5*(dy(i,j)+dy(i2,j2))
+                       elseif (ifrom .eq. ito) then  
+                          dists(k) = 0.5*(dy(i,j)+dy(i2,j2))
+                          dista(k) = 0.5*(dx(i,j)+dx(i2,j2))
+                       else 
+                         dists(k) = sqrt(  (0.5*(dx(i,j)+dx(i2,j2)))**2 &
+                                         + (0.5*(dy(i,j)+dy(i2,j2)))**2 )
+                         dista(k) = 0.25*(dx(i,j)+dx(i2,j2)+dy(i,j)+dy(i2,j2))
+                       endif 
+
+                       sf_f = ( hlake(i,j) - hlake(i2,j2))/dists(k)
+                       sf_t = ( elev(i,j) - elev(i2,j2))/dists(k)
+
+                       zdepr  = max( hlake(i,j), hlake(i2,j2) ) - &
+                                max( elev(i,j)-bank(i,j), elev(i2,j2)-bank(i2,j2))
+                       zdepr  = max( 0., min(zdepr, depmax))
+                       ! zwidr  = min( width(i,j), width(i2,j2) )
+                       zwidr  = max( width(i,j), width(i2,j2) )
+                       zcrosr = zdepr * zwidr
+
+                       zdepl  = max( hlake(i,j), hlake(i2,j2) ) - &
+                                max( elev(i,j), elev(i2,j2) )
+                       zdepl  = max( 0., min(zdepl, depmax) )
+                       zwidl  = max( 0., dista(k)-zwidr )
+                       zcrosl = zdepl * zwidl
+                      
+                       if (zcrosr.gt.0.) then
+                       veloc(i,j) = tstreamflux(i,j,k) / (zcrosr+zcrosl)
+                       else
+                       veloc(i,j) = 0.
+                       endif
+
+
+                       ! overland flow erosion for all cells and river sediment
+                       ! transport (bank>2m)
+     
+                       call RoutSedOvrl(did,ix,jx,NumFracts,indexeros,dista(k),dists(k),dt,tstreamflux(ifrom,jfrom,k),streamflux(ifrom,jfrom),& 
+                             sf_t, veloc(ifrom,jfrom),ifrom,jfrom,ito,jto,iout,jout,qsKR(ifrom,jfrom),SusSed,DepSed,ErodSed,SedFlux,t_SedFlux)
+
+                       if (bank(ifrom,jfrom).gt.2.0) then 
+
+                       call RoutSedChn(ix,jx,NumFracts,dista(k),dists(k),dt,tstreamflux(ifrom,jfrom,k), sf_f,zdepr,veloc(ifrom,jfrom),&
+                             ifrom,jfrom,ito,jto,iout,jout,qsEH(:,ifrom,jfrom),SusSed,DepSed,SedFlux,t_SedFlux)
+                       
+                       endif
+
+                       
+                       ! overland flow erosion and river sediment transport
+                       ! bank(ifrom,jfrom).le.2.0 
+                       !if (bank(ifrom,jfrom).le.2.0) then
+                       
+                       !call RoutSedOvrl(did,ix,jx,NumFracts,indexeros,dista(k),dists(k),dt,tstreamflux(ifrom,jfrom,k), sf_t, veloc(ifrom,jfrom),&
+                       !     ifrom,jfrom,ito,jto,iout,jout,qsKR(ifrom,jfrom),SusSed,DepSed,ErodSed,SedFlux,t_SedFlux)
+
+                       !else
+
+                       !call RoutSedChn(ix,jx,NumFracts,dista(k),dists(k),dt,tstreamflux(ifrom,jfrom,k), sf_f,zdepr,veloc(ifrom,jfrom),&
+                       !      ifrom,jfrom,ito,jto,iout,jout,qsEH(:,ifrom,jfrom),SusSed,DepSed,SedFlux,t_SedFlux)
+                       !endif
+
+                       ! subroutine RoutSedOvrl(ix,jx,NumFracts,dx,dt,discharge,sf,V,jfrom,kfrom,jto,kto,qsKR, &
+                       !  SusSed,DepSed,ErodSed,SedFlux,T_SedFlux)
+
+
+                        ! if(qout != 0) call RoutSedOut()
+
+                        ! Net erosion, suspended/deposited/scoured volumes, 
+                        ! sediment concentrations and absolute max./min values 
+
+!                       call SedStats
+                        t_veloc(i,j) = t_veloc(i,j) +veloc(i,j)
+                        t_qsKR(i,j) = t_qsKR(i,j) + qsKR(i,j)
+                        do SizeFr = 1, NumFracts
+                           t_qsEH(SizeFr,i,j) = t_qsEH(SizeFr,i,j) + qsEH(SizeFr,i,j)
+                        enddo                    
+                                             
+                    endif
+                    enddo
+
+                   endif
+                endif
+
+                if (ltype(i,j) .eq. 2) then  ! ocean incontact with basin                        
+                   do  SizeFr = 1, NumFracts     
+                      SusSed(SizeFr,i,j) = 0. 
+                      DepSed(SizeFr,i,j) = 0. 
+                      ErodSed(SizeFr,i,j) = 0. 
+                   enddo     
+                endif      
+
+          end do
+       end do     
+
+        ! Sediment settling for this water depth and time dt
+
+        call Settling(ix, jx, dt, NumFracts, ltype, hlake, elev, bank, SusSed, DepSed)
+
+
+        ! Net erosion, suspended/deposited/scoured volumes,
+        ! sediment concentrations and absolute max./min values
+        
+        call SedStats(ix,jx,NumFracts,dgrid,dt,ltype,hlake,elev,bank,fbed,SusSed,DepSed,ErodSed,SedConc,T_SedConc)
+
+!       do j=jts,jte
+!          do i=its, ite
+!             if ( ltype(i,j).ne.1 .or.          &
+!               ( streamflux(i,j).lt.29.99 .and. &
+!                 hlake(i,j).le.elev(i,j) ) ) then
+!               veloc(i,j) = 0.
+!             else
+!               zdepr  = max (0., hlake(i,j)-(elev(i,j)-bank(i,j)))
+!               zdepr = min (zdepr, depmax)
+!               zcrosr = zdepr * width(i,j)
+!               zdepl  = max (0., hlake(i,j)- elev(i,j))
+!               zdepl = min (zdepl, depmax)
+!               zcrosl = zdepl * max (0., dx(i,j)-width(i,j))
+!               veloc(i,j) = streamflux(i,j) / max (.001, zcrosr+zcrosl)
+!          endif
+!        enddo
+!      enddo
 
 
        dtot = 0.0
@@ -2510,8 +2829,10 @@ subroutine drive_OverlandChannelRouting( &
      itran,      jtran,       ktran,         fluxtran,  &
      fluxtranav, dt_flowtran, count_flowout, ac_ocnsf,  &
      ac_fixsf,    ac_pmewsf,  ac_roff_grnd,  w_sf    ,  &
-     sdep,did,    veloc                                 &                                        
-      )
+     sdep,did,    veloc,      qsKR,         indexeros,  &
+     NumFracts,   SusSed,     DepSed,       ErodSed,    &
+     SedFlux,     t_SedFlux,  qsEH,         SedConc,    &
+     T_SedConc,   sedfluxtranav)
 
 ! DESCRIPTION:
 ! To drive 2D Overland+Channle Routing
@@ -2552,11 +2873,27 @@ subroutine drive_OverlandChannelRouting( &
      REAL,    INTENT(IN),    DIMENSION(IX,JX) :: evap       ! evaporation rate, m/s
      REAL,    INTENT(INOUT), DIMENSION(IX,JX) :: streamflux ! stream flux out of cell, m3/s
      REAL,    INTENT(INOUT), DIMENSION(IX,JX) :: veloc      ! stream velocity out of cell, m/s
+    
+     REAL,    INTENT(INOUT), DIMENSION(IX,JX) :: qsKR,    &  !sediment discharge from sheet and rill erosion, m3
+                                                   T_SedConc
+     REAL,    INTENT(INOUT), DIMENSION(NumFracts,IX, JX) :: &
+                                                 qsEH,    &  ! transport capacity of channel, m3
+                                                 SusSed,  &  ! suspended sediment, m3
+                                                 DepSed,  &  ! deposited sediment, m3
+                                                 ErodSed, &  ! eroded sediment, m3
+                                                 SedFlux, &  ! sediment flux, m3/s 
+                                                 SedConc     ! sediment concentration, mg/l
+     REAL,    INTENT(INOUT), DIMENSION(IX, JX) :: &
+                                                 t_SedFlux   ! Total sediment flux at cell, m3/s
+
+
      INTEGER, INTENT(INOUT), DIMENSION(IX,JX) :: istreamflux! quadrant for stream flux (1=E, 2=NE, ..., 8=SE)
      REAL,    INTENT(IN)                      :: dt         ! HYDRO timestep interval, sec. 
      INTEGER, INTENT(IN)                      :: istep      ! current time step
      REAL,    INTENT(IN)                      :: dt_thrt    ! interval for 2D terrain hydrologic routing, sec.
      INTEGER, INTENT(IN)                      :: method     ! numerical method for 2D channel routing
+     INTEGER, INTENT(IN)                      :: indexeros  ! Erosion option index (1: erosion is simulated; !=1: otherwise)
+     INTEGER, INTENT(IN)                      :: NumFracts  ! Maximum number of size fractions found any of the 
 
      ! For transect streamflux
      INTEGER,           INTENT(IN)                        :: ntran  ! number of cross-section
@@ -2568,6 +2905,9 @@ subroutine drive_OverlandChannelRouting( &
      REAL,    OPTIONAL, INTENT(INOUT), DIMENSION(ntran)   :: fluxtranav    ! interval averaging streamflow of transections
      REAL,    OPTIONAL, INTENT(IN)                        :: dt_flowtran   ! interval for output streamflow of transections
      INTEGER, OPTIONAL, INTENT(INOUT)                     :: count_flowout ! count for output averaging streamflow
+
+     REAL,    DIMENSION(ntran)                            :: sedfluxtran   !streamflow crossing specified transections
+     REAL,    OPTIONAL, INTENT(INOUT), DIMENSION(ntran)   :: sedfluxtranav !interval averaging streamflow of transections
 
      REAL,    SAVE,          ALLOCATABLE      :: fluxav(:)
 
@@ -2614,6 +2954,7 @@ subroutine drive_OverlandChannelRouting( &
      ! LOCAL VARIABLES
      REAL,    ALLOCATABLE :: gstreamflux(:,:)
      INTEGER, ALLOCATABLE :: gistreamflux(:,:)
+     REAL,    ALLOCATABLE :: gt_SedFlux(:,:)
      REAL    :: enegsub                                     ! domain-scale hlake fix at sub-timestep, m3/s
      REAL    :: totosub                                     ! streamflux into ocean at sub-timestep, m3/s
      INTEGER :: i, j, k, m, n
@@ -2782,8 +3123,12 @@ subroutine drive_OverlandChannelRouting( &
                                    streamflux,  istreamflux,                    &
                                    enegsub,     totosub,  istep,                &
                                    dt_thrt,     isub,     nsub,     method,     &
-                                   ocnsub,      fixsub,     &
-                                   rsat,        cgiflux,  cuiflux,  cglflux, sdep, did,veloc)
+                                   ocnsub,      fixsub,                         &
+                                   rsat,        cgiflux,  cuiflux,  cglflux,    &
+                                   sdep,        did,      veloc,                &
+                                   qsKR,        indexeros,NumFracts,SusSed,     &
+                                   DepSed,      ErodSed,  SedFlux,  t_SedFlux,  &
+                                   qsEH,        SedConc,  T_SedConc)
 
       do j = 1, jx
          do i = 1, ix  
@@ -2829,8 +3174,10 @@ subroutine drive_OverlandChannelRouting( &
 #else
        allocate(gstreamflux(ix,jx))
        allocate(gistreamflux(ix,jx))
+       allocate(gt_SedFlux(ix,jx))
        gstreamflux(1:ix, 1:jx)  = streamflux
        gistreamflux(1:ix, 1:jx) = istreamflux
+       gt_SedFlux(1:ix, 1:jx)   = t_SedFlux
 #endif
     endif
 
@@ -2839,6 +3186,7 @@ subroutine drive_OverlandChannelRouting( &
 !       allocate(fluxav(ntran))
 !       fluxav(1:3) = 0.
 !    endif
+!print*, ntran,"CONG JIANG 2022.01"
 
     count_flowout = count_flowout + 1
     if (ntran .gt. 0) then
@@ -2847,6 +3195,8 @@ subroutine drive_OverlandChannelRouting( &
 #endif
       do n = 1, ntran 
          fluxtran(n) = 0. 
+         ! C.Jiang,2022.01
+         sedfluxtran(n) = 0.
          if (ncross(n) .gt. 0) then       
             do m = 1, ncross(n)
                i = itran(m,n) 
@@ -2855,10 +3205,12 @@ subroutine drive_OverlandChannelRouting( &
                if (gistreamflux(i,j) .eq. k) then
                   idir = isign(1,ktran(m,n))
                   fluxtran(n) = fluxtran(n) + idir * gstreamflux(i,j)
+                  sedfluxtran(n) = sedfluxtran(n) + idir * gt_SedFlux(i,j)
               endif
             end do
          endif
          fluxtranav(n) = fluxtranav(n) + fluxtran(n)
+         sedfluxtranav(n) = sedfluxtranav(n) + sedfluxtran(n)
       end do
 
       ! accumulates streamflow for grids
@@ -2871,6 +3223,13 @@ subroutine drive_OverlandChannelRouting( &
       if ( (mod((real(istep+1))*dt, dt_flowtran) .le. 1.e-6) .or. (istep .eq. 0) )then
          call flowtrans_output(count_flowout, istep, dt, dt_flowtran, ntran, fluxtranav)
       endif
+
+      print*, sedfluxtranav,"CONG JIANG,2022.01"
+      if ( (mod((real(istep+1))*dt, dt_flowtran) .le. 1.e-6) .or. (istep .eq. 0))then
+         call sedfluxtrans_output(count_flowout, istep, dt, dt_flowtran, ntran, sedfluxtranav)
+      endif
+
+
 #ifdef MPP_LAND
       endif
 #endif
@@ -2920,7 +3279,9 @@ subroutine drive_OverlandChannelRouting( &
         avflux(i)  = fluxsum(i) / ncount
         fluxsum(i) = 0.
      end do
-     ncount = 0
+!C.Jiang,2022.01
+!change to subroutine sedfluxtrans_output
+!     ncount = 0
 
      write(fmt2,'(a,a,i0,a,a)') '(','I10,',ntran, 'e12.4', ')'
      open(UNIT=66, POSITION='APPEND', FILE='streamflow_trans.txt')
@@ -2928,6 +3289,56 @@ subroutine drive_OverlandChannelRouting( &
      close(66)
 
   end subroutine flowtrans_output
+
+!----------------------------------------------------------------------------------
+ subroutine sedfluxtrans_output(ncount, istep, dt, dt_flowtran, ntran,fluxsum)
+
+  ! To write out averaging-streamflow for specified transects
+
+    implicit none
+
+     integer, intent(inout)                   :: ncount
+     integer, intent(in)                      :: istep
+     real,    intent(in)                      :: dt
+     real,    intent(in)                      :: dt_flowtran
+     integer, intent(in)                      :: ntran
+     real,    intent(inout), dimension(ntran) :: fluxsum
+
+     integer :: i
+     integer :: num_tranout
+     character(len=100) :: fmt1, fmt2
+     real, dimension(ntran) :: avflux
+
+     if (istep .eq. 0) then
+
+        write(fmt1,'(a,a,i0,a,a)') '(','a10,',ntran, '(a10,I2)', ')'
+        open(UNIT=88, STATUS='REPLACE', FILE='sedflux_trans.txt')
+
+        write(88,*) "averaging volumetric sediment flux (m3/s) for transects"
+        write(88,*) "output interval (second) for sediment flux = ", dt_flowtran
+        write(88,*) "timestep interval (second) for HYDRO    = ", dt
+        write(88,*) "number of transects      = ", ntran
+        write(88,*) "======================================================="
+        write(88,trim(fmt1)) "Time No.", ('trans',i,i=1,ntran)
+
+        close(88)
+        return
+     endif
+
+     num_tranout = (istep+1)/ncount
+
+     do i = 1, ntran
+        avflux(i)  = fluxsum(i) / ncount
+        fluxsum(i) = 0.
+     end do
+     ncount = 0
+
+     write(fmt2,'(a,a,i0,a,a)') '(','I10,',ntran, 'e12.4', ')'
+     open(UNIT=88, POSITION='APPEND', FILE='sedflux_trans.txt')
+         write(88, trim(fmt2)) num_tranout, (avflux(i),i=1,ntran)
+     close(88)
+
+  end subroutine sedfluxtrans_output
 
 ! ------------------------------------------------------------
   subroutine fwater_cal(did)
@@ -3383,6 +3794,9 @@ subroutine drive_OverlandChannelRouting( &
 ! water use module
              if (nlst_rt(did)%IRRIG_OPTION .eq. 1) &
              rt2d(did)%dvolgw(i,j) = rt2d(did)%dvolgw(i,j) - rt2d(did)%irggw(i,j) * dt
+!             if (abs(- rt2d(did)%irggw(i,j) * dt).gt.0.) then
+!             print*,  - rt2d(did)%irggw(i,j) * dt, "- rt2d(did)%irggw(i,j) * dt"
+!             endif
  
          else
              rt2d(did)%dvolgw(i,j) = 0.0
@@ -4286,5 +4700,1100 @@ subroutine drive_OverlandChannelRouting( &
     end do
 
   end subroutine vol2gwhead
+
+! ---------------------------------------------------------------
+  subroutine RoutSedOvrl(did,ix,jx,NumFracts,indexeros,dx,dists,dt,discharge,tdischarge,sf,V,jfrom,kfrom,jto,kto,jout,kout,qsKR, &
+                         SusSed,DepSed,ErodSed,SedFlux,t_SedFlux)
+
+  ! call RoutSedOvrl(streamflux(i,j), sf, veloc(i,j), ifrom, jfrom, ito, jto, qsKR)
+  ! DESCRIPTION:
+  !
+  ! Record of revisions:
+  ! Modified by Cong Jiang, 2020.08
+  ! Developed by CASC2D-SED
+  ! Purpose:
+  !
+  !
+  ! Description:
+  !
+  ! Sheet and Rill erosion model is adoped from the Kilinc and Richardson (1973)
+  ! equation.
+  ! Determines the sediment transport capacity based on the
+  ! Kilinc and Richardson transport equation. Result is in m3
+
+    implicit none
+    
+    INTEGER, INTENT(IN) :: did
+    REAL, INTENT(IN)  :: discharge             ! flow discharge, m3/s
+    REAL, INTENT(IN)  :: tdischarge             ! flow discharge, m3/s
+    REAL, INTENT(IN)  :: sf                    ! terrain slope, m/m
+    REAL, INTENT(IN)  :: V                 ! velocity of flow, m/s
+
+    INTEGER, INTENT(IN)  :: ix
+    INTEGER, INTENT(IN)  :: jx
+    INTEGER, INTENT(IN)  :: NumFracts
+    INTEGER, INTENT(IN)  :: indexeros
+    REAL, INTENT(IN)  :: dx                    ! time interval for HYDRO, =nlst_rt(did)%dtrt
+    REAL, INTENT(IN)  :: dists
+    REAL, INTENT(IN)  :: dt                    ! resolution for HYDRO, =nlst_rt(did)%dxrt0
+  
+    INTEGER, INTENT(IN)  :: jfrom, kfrom, &
+                            jto, kto, &
+                            jout,kout
+
+!   REAL,DIMENSION(soiltype,NumFracts), ALLOCATABLE,INTENT(IN)  :: pfraction ! Fraction of  size 
+                                                                             ! fraction F found in soil type S
+
+    REAL, INTENT(INOUT), DIMENSION(NumFracts,ix, jx) :: &
+                                   SusSed,  &  ! Fraction i suspended sed. at cell (j,k)
+                                   DepSed,  &  ! Fraction i deposited sed. at cell (j,k)
+                                   ErodSed, &  ! Fraction i    eroded sed. at cell (j,k)
+                                   SedFlux     ! Fraction i sediment flux at cell (j,k)
+    
+    REAL, INTENT(OUT) :: qsKR  !  transport capacity at cell (j,k), m3
+   
+    REAL, INTENT(INOUT),DIMENSION(ix, jx) :: &
+                                   t_SedFlux  ! total sediment flux at cell (j,k), m3/s
+    
+
+    ! LOCAL VARIABLES
+      
+    REAL, DIMENSION(:), ALLOCATABLE   :: qsSUS     ! transported volume from suspension 
+    REAL, DIMENSION(:), ALLOCATABLE   :: qsADV     ! transport carried by advection
+    REAL, DIMENSION(:), ALLOCATABLE   :: qsBM      ! transported volume from deposition (bed material)
+    REAL, DIMENSION(:), ALLOCATABLE   :: capacity  ! transport capacity
+    REAL, DIMENSION(:), ALLOCATABLE   :: qsEROS    ! transported volume from parent material
+    REAL, DIMENSION(:), ALLOCATABLE   :: qs        ! total transported volume
+    
+
+
+
+    INTEGER   :: SoilType
+    INTEGER   :: SizeFr
+
+    REAL         :: qsSUStot    ! Total transported suspended volume
+    REAL         :: qsBMtot     ! Total transported bed material volume
+    REAL         :: qsEROStot   ! Total transported eroded material volume
+    REAL         :: SUStot      ! Total susp. volume in outgoing cell
+    REAL         :: DEPtot      ! Total deposited volume in outgoing cell
+
+    REAL         ::  totXSScap  ! Total excess transport capacity
+    REAL         ::  RESIDcap   ! Residual tranport capacity
+
+    REAL(kind=8), DIMENSION(19,NumFracts) :: pfraction 
+
+    pfraction = reshape((/0.88, 0.07, 0.05, &
+                          0.77, 0.15, 0.08, &
+                          0.65, 0.25, 0.10, &
+                          0.25, 0.61, 0.14, &
+                          0.05, 0.90, 0.05, &
+                          0.40, 0.40, 0.20, &
+                          0.625,0.10, 0.275,&
+                          0.10, 0.565,0.335,&
+                          0.325,0.34, 0.335,&
+                          0.50, 0.10, 0.40, &
+                          0.10, 0.45, 0.45, &
+                          0.10, 0.20, 0.70, &      
+                            0.,   0.,   0., &
+                            0.,   0.,   0., &
+                            0.,   0.,   0., &
+                            0.,   0.,   0., &
+                            0.,   0.,   0., &
+                            0.,   0.,   0., &
+                            0.,   0.,   0.  /),(/19,3/),order =(/ 2, 1 /))
+    ! Allocate for 
+
+    allocate(qsSUS(NumFracts))
+    allocate(qsADV(NumFracts))
+    allocate(qsBM(NumFracts))
+    allocate(capacity(NumFracts))
+    allocate(qsEROS(NumFracts))
+    allocate(qs(NumFracts))
+ 
+    ! SizeFr: Soil size fraction (1... NumFracts)
+    ! Outgoing cell : (jfrom, kfrom)
+    ! Receiving cell: (jto, kto)
+
+  
+    ! Flow velocity [m/s]
+
+ !   V = (abs(dqq)/(dx * h[jfrom][kfrom]))
+  
+ 
+    ! Initialize sediment volumes to zero
+    qsSUStot = 0.
+    qsBMtot = 0.
+    qsEROStot = 0.
+    SUStot = 0.
+    DEPtot = 0.
+  
+    ! Finds soil type for the outgoing overland cell
+
+!    SoilType = isoil[jfrom][kfrom]
+    SoilType = rt_domain(did)%SOILTYP(jfrom,kfrom)
+    
+    ! Transport Capacity using the Kilinc-Richardson equation
+     
+    
+
+!    qsKR = KRcap(KRov,dqq,dx,sf,jfrom,kfrom)
+    call KRcap(did,indexeros,discharge,tdischarge,sf,dx,dt,jfrom,kfrom,qsKR)
+
+!  Multi-directional flow, avoiding multiple calculations of qsKR
+
+    qsKR=(discharge/tdischarge)*qsKR
+
+    ! Initialize transport volumes by size fraction to zero
+
+    do SizeFr = 1, NumFracts
+
+       qsSUS(SizeFr) = 0.
+       qsBM(SizeFr) = 0.
+       qsEROS(SizeFr) = 0.
+       qs(SizeFr) = 0.
+
+       ! Outgoing cell total suspended and deposited sediment
+
+       SUStot = SUStot + SusSed(SizeFr,jfrom,kfrom)
+       DEPtot = DEPtot + DepSed(SizeFr,jfrom,kfrom)
+    end do
+   
+    ! For each size fract
+    do SizeFr = 1, NumFracts
+    
+       ! Is this size fraction present in suspended portion ?
+       ! estimate qsSUS(SizeFr)
+     
+       if(SusSed(SizeFr,jfrom,kfrom) > 0) then
+
+          ! Transport capacity is < total suspended
+
+          if(qsKR < SUStot) then
+ 
+          ! Volume that can be transported using the KR equation   
+          
+          capacity(SizeFr) = qsKR * SusSed(SizeFr,jfrom,kfrom)/SUStot
+          
+          ! Volume that can be transported by advective processes
+ 
+          ! qsADV(SizeFr) = SusSed(SizeFr,jfrom,kfrom) * V * dt / dx
+          qsADV(SizeFr) = SusSed(SizeFr,jfrom,kfrom) * MIN(V * dt / dists, 1.0)
+         
+
+          ! Transport the maximum between the last two quantities
+ 
+          qsSUS(SizeFr) = MAX(capacity(SizeFr),qsADV(SizeFr))
+  
+          else ! If transport capacity is > total suspended sediment
+
+          ! Transport all the suspended sediment for this size fr
+   
+          qsSUS(SizeFr) = SusSed(SizeFr,jfrom,kfrom)
+
+          end if
+         
+          ! Transfers the volume qsSUS[SizeFr] of sediment size 
+          ! fraction, SizeFr, in suspension in the outgoing cell 
+          ! to the suspended portion of the receiving cell 
+          
+          call  TransferSed (ix,jx,NumFracts,jfrom,kfrom,jto,kto,jout,kout,SizeFr,SusSed,qsSUS(SizeFr),SusSed)!,sedout)          
+
+          
+          ! TransferSed(SizeFr,SusSed,qsSUS[SizeFr],jfrom,kfrom,jto,kto);
+
+
+          ! Keeps track of the total volume of sediment coming from
+          ! the suspended material portion of the outgoing cell
+  
+          qsSUStot = qsSUStot + qsSUS(SizeFr)
+     
+        end if
+     end do
+     ! Reduces the transport capacity by the volume that has already
+     ! been transported from the outgoing cell to get the total 
+     ! excess capacity 
+     
+     totXSScap = MAX(0.,qsKR - qsSUStot)
+
+     !  totXSScap = 0.
+ 
+     ! If there is an excess transport capacity, and provided that 
+     ! the outgoing cell has previously deposited material, we use 
+     ! this capacity to put this sediment in suspension and move it 
+     ! to the suspended portion of the receiving cell
+     ! estimate qsBM
+     
+     if ((totXSScap .gt. 0) .and. (DEPtot .gt. 0)) then
+          
+        do SizeFr = 1, NumFracts
+        
+           ! Is this size fraction present in deposited portion ?
+         
+           if(DepSed(SizeFr,jfrom,kfrom) > 0) then
+          
+              ! Excess transport capacity is < total deposited sediment
+
+              if(totXSScap < DEPtot) then
+              
+              ! Volume that can be transported for this size fraction is
+              ! proportional to its percentage in the total deposited sediment
+
+              qsBM(SizeFr) = totXSScap * DepSed(SizeFr,jfrom,kfrom) / DEPtot
+              else  
+              ! If transport capacity is > total deposited sed.
+              ! Transport all the deposited sed. for this size fr.
+      
+              qsBM(SizeFr) = DepSed(SizeFr,jfrom,kfrom)
+
+              end if
+           
+              ! Transfers the volume qsBM[SizeFr] of sediment size 
+              ! fraction, SizeFr, in deposition in the outgoing cell
+              ! to the suspended portion of the receiving cell 
+ 
+               call  TransferSed (ix,jx,NumFracts,jfrom,kfrom,jto,kto,jout,kout,SizeFr,DepSed,qsBM(SizeFr),SusSed)!,sedout
+
+               if(DepSed(SizeFr,jfrom,kfrom) < 0.) then
+
+               print*,DepSed(SizeFr,jfrom,kfrom),qsBM(SizeFr),totXSScap,DEPtot,"DepSed(SizeFr,jfrom,kfrom), qsBM(SizeFr), totXSScap, DEPtot"
+               call hydro_stop("Negative DepSed-overland flow")
+
+               end if
+              
+              ! TransferSed(SizeFr,DepSed,qsBM(SizeFr),jfrom,kfrom,jto,kto)
+ 
+              ! Keeps track of the total volume of sediment leaving 
+              ! the deposited material portion of the outgoing cell 
+
+              qsBMtot = qsBMtot + qsBM(SizeFr)
+  
+           end if
+        end do  
+     endif         
+ 
+     ! Reduces the excess transport capacity by the total volume 
+     ! of sediment, qsBMtot,that has alrady been transported 
+     ! from the deposited portion of the outgoing cell
+ 
+      RESIDcap = MAX(0.,totXSScap - qsBMtot)
+
+     ! RESIDcap = 0.
+
+     ! Any residual transport capacity is used to erode the parent 
+     ! material. Erosion by size fraction is proportional to its 
+     ! percentage in the parent material
+
+     if (RESIDcap >0) then
+
+        do SizeFr = 1, NumFracts
+       
+        ! Volume of eroded parent material corresponding to size */
+        ! fraction SizeFr */
+      
+        ! qsEROS(SizeFr) = RESIDcap * pfraction(SoilType,SizeFr)
+
+         qsEROS(SizeFr) = RESIDcap * pfraction (SoilType,SizeFr)
+        !print*,pfraction(SoilType,SizeFr), SoilType, SizeFr,"pfraction"
+ 
+        ! Keeps track of the total volume of sediment coming from */
+        ! the parent material portion of the outgoing cell
+            
+        qsEROStot = qsEROStot + qsEROS(SizeFr)
+
+        ! Transfers the volume qsEROS[SizeFr] of sediment size 
+        ! fraction, SizeFr from the outgoing cell parent material 
+        ! to the suspended portion of the receiving cell
+        
+        call  TransferSed (ix,jx,NumFracts,jfrom,kfrom,jto,kto,jout,kout,SizeFr,ErodSed,qsEROS(SizeFr),SusSed)!,sedout)  
+             
+ 
+        !TransferSed(SizeFr,ErodSed,qsEROS(SizeFr),jfrom,kfrom,jto,kto)
+
+        end do
+     end if
+
+     ! Keeps track of the total sediment flux leaving the 
+     ! outgoing cell (coming from all 3 sources)
+
+     t_SedFlux(jfrom,kfrom) = t_SedFlux(jfrom,kfrom) +  (qsSUStot + qsBMtot + qsEROStot) / dt
+
+         
+     do SizeFr = 1, NumFracts
+  
+     ! Total sediment volume leaving the outgoing cell by size
+     ! fraction
+    
+      qs(SizeFr) = qsSUS(SizeFr) + qsBM(SizeFr) + qsEROS(SizeFr)
+     
+     ! Keeps track of the sediment flux [m3/s] by size fraction 
+     ! out of the outgoing cell
+  
+     SedFlux(SizeFr,jfrom,kfrom) = SedFlux(SizeFr,jfrom,kfrom) + qs(SizeFr) / dt
+ 
+     end do
+
+ 
+    ! Allocate for
+
+    deallocate(qsSUS)
+    deallocate(qsADV)
+    deallocate(qsBM)
+    deallocate(capacity)
+    deallocate(qsEROS)
+    deallocate(qs)
+end subroutine RoutSedOvrl
+!
+! ---------------------------------------------------------------
+  subroutine RoutSedChn(ix,jx,NumFracts,dx,dists,dt,discharge,sf,Rh,V,jfrom,kfrom,jto,kto,jout,kout,qsEH,&
+                         SusSed,DepSed,SedFlux,t_SedFlux)
+
+  ! call RoutSedOvrl(streamflux(i,j), sf, veloc(i,j), ifrom, jfrom, ito, jto,
+  ! qsKR)
+  ! DESCRIPTION:
+  !
+  ! Record of revisions:
+  ! Modified by Cong Jiang, 2020.08
+  ! Developed by CASC2D-SED
+  ! Purpose:
+  !
+  !
+  ! Description:
+  !
+  ! Sheet and Rill erosion model is adoped from the Kilinc and Richardson (1973)
+  ! equation.
+  ! Determines the sediment transport capacity based on the
+  ! Kilinc and Richardson transport equation. Result is in m3
+
+    implicit none
+
+    REAL, INTENT(IN)  :: discharge             ! flow discharge, m3/s
+    REAL, INTENT(IN)  :: sf                    ! channel fraction slope, m/m
+    REAL, INTENT(IN)  :: Rh                    ! channel hydraulic radius, m
+    REAL, INTENT(IN)  :: V                 ! velocity of flow, m/s
+
+    INTEGER, INTENT(IN)  :: ix
+    INTEGER, INTENT(IN)  :: jx
+    INTEGER, INTENT(IN)  :: NumFracts
+    REAL, INTENT(IN)  :: dx                    ! time interval for HYDRO,=nlst_rt(did)%dtrt
+    REAL, INTENT(IN)  :: dists
+    REAL, INTENT(IN)  :: dt                    ! resolution for HYDRO,=nlst_rt(did)%dxrt0
+
+    INTEGER, INTENT(IN)  :: jfrom, kfrom, &
+                            jto, kto, &
+                            jout,kout
+
+    REAL, INTENT(INOUT), DIMENSION(NumFracts,ix, jx) :: &
+                                   SusSed,  &  ! Fraction i suspended sed. at cell (j,k)
+                                   DepSed,  &  ! Fraction i deposited sed. at cell (j,k)
+                                   SedFlux     ! Fraction i sediment flux  at cell (j,k)
+
+    REAL, INTENT(OUT),DIMENSION(NumFracts) :: qsEH  !  transport capacity at cell (j,k)
+
+    REAL, INTENT(OUT),DIMENSION(ix, jx) :: &
+                                   t_SedFlux  ! total sediment flux at cell (j,k)
+
+
+    ! LOCAL VARIABLES
+
+    REAL, DIMENSION(:), ALLOCATABLE   :: qsSUS     ! transported volume from suspension
+    REAL, DIMENSION(:), ALLOCATABLE   :: qsBM      ! transported volume from deposition (bed material)
+    REAL, DIMENSION(:), ALLOCATABLE   :: XSScap    ! excess transport capacity
+    REAL, DIMENSION(:), ALLOCATABLE   :: qs        ! total transported volume
+
+    INTEGER   :: SoilType
+    INTEGER   :: SizeFr
+
+    REAL         ::  supply       ! R
+    ! REAL         ::  TotQs        ! Total transport volume
+    REAL         ::  adv_factor   !
+
+    ! Allocate for
+
+    allocate(qsSUS(NumFracts))
+   !   allocate(qsEH(NumFracts))
+    allocate(qsBM(NumFracts))
+    allocate(XSScap(NumFracts))
+    allocate(qs(NumFracts))
+
+    ! SizeFr: Soil size fraction (1... NumFracts)
+    ! Outgoing cell : (jfrom, kfrom)
+    ! Receiving cell: (jto, kto)
+    
+    ! Total sediment volume out of outgoing cell is initialized
+   
+     !TotQs = 0.0
+
+    ! Flow velocity [m/s]
+
+ !   V = (abs(dqq)/(dx * h[jfrom][kfrom]))
+
+
+    ! Initialize transport volumes by size fraction to zero
+
+    do SizeFr = 1, NumFracts
+
+       ! Sediment supply in the outgoing cell if found in suspension*/
+       ! (**SusSed) and/or in deposition (**DepSed)
+
+       supply = SusSed(SizeFr,jfrom,kfrom) + DepSed(SizeFr,jfrom,kfrom)
+       
+       ! initialize qs to 0 in case that supply = 0
+       
+       qs(SizeFr) = 0.
+
+       ! If there is sediment supply in the outgoing cell
+   
+       if (supply.ne.0) then
+   
+       ! Transport capacity [m3] for size fraction SizeFr using 
+       ! the Engelund and Hansen equation
+
+       call EHcap(V,discharge,sf,Rh,dx,dt,jfrom,kfrom,SizeFr,qsEH(SizeFr))
+
+       !qsEH(SizeFr) = 10. 
+      
+       ! Suspended sediment transport capacity [m3] by advection 
+       ! Limit this transport by availability
+     
+       adv_factor =  MIN(V*dt/dists,1.)
+       
+       qsSUS(SizeFr) = SusSed(SizeFr,jfrom,kfrom) * adv_factor 
+ 
+       !c.jiang,2022.01 
+       ! Limit this by EH equation transport capacity
+   
+       !qsSUS(SizeFr) = MIN(qsEH(SizeFr), qsSUS(SizeFr))      
+
+       ! Transfers the volume SUSvol[SizeFr] of sediment size 
+       ! fraction, SizeFr in suspension in the outgoing cell
+       ! to the suspended portion of the receiving cell       
+
+       ! TransferSed(SizeFr,SusSed,SUSvol[SizeFr],jfrom,kfrom,jto,kto);
+   
+       call  TransferSed (ix,jx,NumFracts,jfrom,kfrom,jto,kto,jout,kout,SizeFr,SusSed,qsSUS(SizeFr),SusSed)!,sedout)
+     
+       ! Excess capacity [m3] to move seds. from the bed-material
+
+       XSScap(SizeFr) = MAX(0., qsEH(SizeFr) - qsSUS(SizeFr))
+   
+       ! Bed-material transport capacity [m3] by advection
+
+       qsBM(SizeFr) = DepSed(SizeFr,jfrom,kfrom) * adv_factor
+
+       ! Volume of bed-material transported out of (jfrom,kfrom)
+
+       qsBM(SizeFr) = MIN(XSScap(SizeFr),qsBM(SizeFr))
+  
+       ! Transfers the volume BMvol[SizeFr] of sediment size 
+       ! fraction, SizeFr in deposition in the outgoing cell 
+       ! to the suspended portion of the receiving cell
+   
+       ! TransferSed(SizeFr,DepSed,BMvol[SizeFr],jfrom,kfrom,jto,kto)
+
+       call  TransferSed (ix,jx,NumFracts,jfrom,kfrom,jto,kto,jout,kout,SizeFr,DepSed,qsBM(SizeFr),SusSed)!,sedout)
+
+       if(DepSed(SizeFr,jfrom,kfrom) < 0.) then 
+          print*,DepSed(SizeFr,jfrom,kfrom),qsBM(SizeFr),XSScap(SizeFr),"DepSed(SizeFr,jfrom,kfrom), qsBM(SizeFr), XSScap(SizeFr)"
+          call hydro_stop("Negative DepSed-channel")
+       end if
+
+       ! Total volume of transported sediment from outgoing cell
+
+       qs(SizeFr) = qsSUS(SizeFr) + qsBM(SizeFr)
+
+       ! Updates total sediment flux leaving the outgoing cell
+
+        t_SedFlux(jfrom,kfrom) = t_SedFlux(jfrom,kfrom) + qs(SizeFr)/dt
+
+       ! Keeps track of sediment flux out of the outgoing cell
+
+       SedFlux(SizeFr,jfrom,kfrom) = SedFlux(SizeFr,jfrom,kfrom) + qs(SizeFr) / dt
+
+       ! Total sediment volume leaving the outgoing cell
+      
+       ! TotQs = TotQs + qs(SizeFr) 
+      
+       endif
+   enddo
+
+    
+     deallocate(qs)
+     !deallocate(qsEH)
+     deallocate(qsSUS)
+     deallocate(XSScap)
+     deallocate(qsBM )
+
+
+   end subroutine RoutSedChn
+
+!
+! ---------------------------------------------------------------
+  subroutine settling(ix, jx, dt, NumFracts, ltype, hlake, elev, bank, SusSed, DepSed)
+  ! DESCRIPTION:
+  ! At each time step and by size fraction, calculates the volume of 
+  ! sediment in suspension that deposites. This volume is subtracted
+  ! from the suspended portion and added to the deposited portion.
+  !
+
+    implicit none
+
+    REAL, INTENT(INOUT), DIMENSION(NumFracts, ix, jx) :: DepSed
+    REAL, INTENT(INOUT), DIMENSION(NumFracts, ix, jx) :: SusSed
+    
+    INTEGER, INTENT(IN)  :: ix, jx   ! number of grid in X and Y
+    REAL, INTENT(IN)  :: dt          ! timestep interval, s
+    INTEGER, INTENT(IN)  :: NumFracts   ! Maximum number of size fractions found any of
+                                     ! the soil types defined in the soil type input grid
+    INTEGER, INTENT(IN), DIMENSION(ix, jx) :: ltype   ! Basin land type
+    REAL, INTENT(IN), DIMENSION(ix, jx) :: hlake,elev,bank ! depth of channel water
+
+
+    ! LOCAL VARIABLES
+    INTEGER                       :: i,j,SizeFr
+    REAL                          :: ws
+    REAL, DIMENSION(NumFracts)    :: settlPerc
+    REAL, DIMENSION(NumFracts)    :: settl
+    REAL, DIMENSION(ix,jx)        :: depth
+    REAL, PARAMETER               :: factor=0.1
+
+    ! 
+      do j = 1, jx
+         do i = 1, ix
+           depth(i,j) = hlake(i,j) - (elev(i,j) - bank(i,j))
+            if (ltype(i,j) .eq. 1) then
+!              if (ishp[j][k] == 1) depth = h[j][k]
+!              if (ishp[j][k] == 2) depth = hch[j][k];
+               if (depth(i,j) .gt. 0) then
+                  ! Settling is calculated for each size fraction
+                  do SizeFr = 1, NumFracts
+ 
+                      ! Fall velocity (m/s) corresponding to medium grain size of
+                      ! fraction L at 20degrees C
+
+                        if (SizeFr.eq.1) then
+                         ws = 0.036
+                        elseif (SizeFr.eq.2) then
+                         ws = 2.20E-04
+                        elseif (SizeFr.eq.3) then
+                         ws = 8.60E-07
+                        endif
+
+                     if (depth(i,j) .gt. ws * dt) then
+
+                        settlPerc(SizeFr) = ws * dt / depth(i,j)
+
+                     else 
+
+                        settlPerc(SizeFr) = 1.
+
+                     endif
+
+                     settl(SizeFr) = SusSed(SizeFr,i,j) * settlPerc(SizeFr)
+                     DepSed(SizeFr,i,j) = DepSed(SizeFr,i,j) + settl(SizeFr)
+                     SusSed(SizeFr,i,j) = SusSed(SizeFr,i,j) - settl(SizeFr)
+                     
+                     if(DepSed(SizeFr,i,j) < 0.) then
+
+                      print*,DepSed(SizeFr,i,j),SusSed(SizeFr,i,j),settl(SizeFr),settlPerc(SizeFr),depth(i,j),ws,dt,i,j,"DepSed(SizeFr,i,j), SusSed(SizeFr,i,j), settl(SizeFr), depth(i,j), ws, dt, i, j"
+                      call hydro_stop("Negative DepSed-settling")
+
+                      end if 
+              
+                  end do 
+               endif
+            endif  
+         end do
+      end do
+
+
+ end subroutine settling
+!
+!----------------------------------------------------------------
+  subroutine KRcap(did,indexeros,discharge,tdischarge,sf,dx,dt,jfrom,kfrom,KRcapacity)
+
+  ! DESCRIPTION:
+  !
+  ! Record of revisions:
+  ! Modified by Cong Jiang, 2020.08
+  ! Developed by CASC2D-SED
+  ! Purpose:
+  ! 
+  ! Description:
+  ! Determines the sediment transport capacity on land based on the
+  ! Kilinc and Richardson transport equation. Result is in m3
+
+    implicit none
+    
+    INTEGER, INTENT(IN) :: did
+    INTEGER, INTENT(IN) :: indexeros
+    REAL, INTENT(IN)  :: discharge, tdischarge ! flow discharge, m3/s
+    INTEGER, INTENT(IN)  :: jfrom, kfrom
+    REAL, INTENT(IN)  :: sf                    ! terrain slope, m/m
+    REAL, INTENT(IN)  :: dx                    ! time interval for HYDRO, =nlst_rt(did)%dtrt
+    REAL, INTENT(IN)  :: dt                    ! resolution for HYDRO, =nlst_rt(did)%dxrt0
+    REAL, INTENT(OUT) :: KRcapacity            ! sediment transport capacity, m3
+
+    ! LOCAL VARIABLES
+    REAL                      :: UnitDischarge     ! unit flow discharge, m2/s
+    INTEGER                   :: SoilType          ! soil type, category
+    INTEGER                   :: LandUse           ! land use, category
+    REAL                      :: Susle             ! slope factor
+    REAL                      :: Gusle             ! gully factor
+    REAL                      :: Cusle             ! cropping management factor in USLE
+    REAL                      :: Kusle             ! erodibility factor in USLE
+    REAL                      :: Pusle             ! conservation practice factor in USLE
+    INTEGER, PARAMETER:: KRcoeff = 58390
+    INTEGER, PARAMETER:: rmax = 1000
+    REAL                      :: E, & ! 
+                                 I30, & !
+                                 EI30, & !
+                                 QRAIN, & ! precipitation, mm h-1
+                                 RUNSRF ! runoff, mm h-1
+                                                            
+
+
+       QRAIN = rt2d(did)%precip(jfrom,kfrom)*3600.*1000.
+       RUNSRF= rt2d(did)%runoff(jfrom,kfrom)*3600.*1000.
+       ! Brown and Foster's equation was used for the calculation of rainfall
+       ! kinetic energy
+       ! (Brown and Foster, 1987)
+       !   E=0.29*(1-0.72*exp(-0.05*QRAIN))*(QRAIN*dt/3600.)
+       ! rainfall kinetic energy
+       IF(QRAIN.lt.76) THEN
+          E=max((0.119+0.0873*log10(QRAIN))*(QRAIN*dt/3600.),0.)
+       ELSE
+          E=0.283*(QRAIN*dt/3600.)
+       ENDIF
+       ! the maximum 30-min rainfall intensity based on he fixed-time-interval
+       ! data
+
+       I30=QRAIN
+
+       ! Estimate 30-min rainfall erosivity index (EI30) based on the
+       ! fixed-time-interval data
+       ! linear regressions between (EI30)bp and (EI30)dt
+       ! Peters-Lidard approach (S. Yin et al., 2006)
+
+       EI30= 1.730*E*I30
+
+       if (QRAIN.gt.0.1) then
+
+          call RainIntensity_pdf(dt,rmax,QRAIN,EI30)
+
+       else
+
+          EI30 = 0.
+
+       endif
+
+        ! UnitDischarge = abs(discharge/width)
+        UnitDischarge = abs(discharge/dx)
+!        SoilType = isoil[jfrom][kfrom];
+!        LandUse = iman[jfrom][kfrom];
+
+    ! Finds soil type and land use for the outgoing overland cell
+
+!        SoilType = rt_domain(did)%SOILTYP(jfrom,kfrom)
+!        LandUse =  rt_domain(did)%VEGTYP(jfrom,kfrom)
+!        Cusle =    rt_domain(did)%cfactor(LandUse)
+
+        Cusle = max(min(exp(-0.52*rt2d(did)%LAI(jfrom,kfrom)),1.0),0.0)
+
+        ! rt_domain(did)%kfactor(SoilType)
+        Kusle = max(min(rt2d(did)%kfactor(jfrom,kfrom),1.0),0.0)
+        
+        Susle = 20.*tan(abs(rt2d(did)%slope(jfrom,kfrom))*3.1415926/180.)**(5./4.)
+
+        Gusle = exp(0.3*(rt2d(did)%GINDEX(jfrom,kfrom)-1.0))
+        Gusle = 1.0
+ 
+        !print*,jfrom,kfrom,rt2d(did)%GINDEX(jfrom,kfrom),"ifrom,kfrom,rt2d(did)%GINDEX(jfrom,kfrom)"
+       !print*,jfrom,kfrom,rt2d(did)%slope(jfrom,kfrom),"ifrom,kfrom,rt2d(did)%slope(jfrom,kfrom)"
+
+        ! Pusle = rt_domain(did)%pfactor(LandUse)
+!        Pusle = max(min(0.2+0.03*tan(rt2d(did)%slope(jfrom,kfrom)*3.1415926/180)*100.0,1.0),0.0)
+        Pusle = 1.0
+
+!        print*,Cusle,Pusle,Kusle,"Cusle Pusle Kusle Cong Jiang"
+!        print*,rt2d(did)%LAI(jfrom,kfrom),rt2d(did)%slope(jfrom,kfrom), "LAI, SLOPE"
+
+        !KRcapacity = (KRcoeff * abs(sf)**1.66) * UnitDischarge**2.035 * Cusle * Kusle * Pusle * dx * dt
+        
+        if (indexeros.eq.1) then
+        !
+        KRcapacity =  KRcoeff * (tan(abs(rt2d(did)%slope(jfrom,kfrom))*3.1415926/180.)**1.66)*UnitDischarge**2.035 * Cusle *Kusle * Pusle * dx * dt
+        elseif(indexeros.eq.2) then 
+        !USLE
+        if (QRAIN.gt. 1e-3) then
+          KRcapacity =  EI30 * Susle * Cusle * Kusle * Pusle * Gusle * (1e-4*dx*dx) * 1e3/(2.65*1e3)
+        else
+          KRcapacity = 0.
+        endif
+
+         KRcapacity = KRcapacity * (discharge / tdischarge)
+
+        endif
+        ! MUSLE Model 
+        !KRcapacity = 11.8 * (max(rt2d(did)%runoff(jfrom,kfrom),0.) * 1.0) **0.56*Kusle*1.0*1.0*Cusle*1.0
+   
+        !if (jfrom.eq.10 .and. kfrom.eq.18) print*,KRcapacity,abs(sf)**1.66,UnitDischarge**2.035,"KR Sf UnitDischarge terms"
+
+ end subroutine KRcap
+
+ ! ---------------------------------------------------------------
+  subroutine EHcap(V,discharge,sf,Rh,dx,dt,jfrom,kfrom,SizeFr,EHcapacity)
+
+  ! DESCRIPTION:
+  !
+  ! Record of revisions:
+  ! Modified by Cong Jiang, 2020.08
+  ! Developed by CASC2D-SED
+  ! Purpose:
+  !
+  ! Description:
+  ! Determines the sediment transport capacitya on land based on the
+  ! Kilinc and Richardson transport equation. Result is in m3
+
+    implicit none
+
+    REAL, INTENT(IN)  :: discharge             ! flow discharge, m3/s
+    REAL, INTENT(IN)  :: V                     !  channel depth-averaged velocity, m/s
+    INTEGER, INTENT(IN)  :: jfrom, kfrom       !
+    INTEGER, INTENT(IN)  :: SizeFr             !
+    REAL, INTENT(IN)  :: sf                    ! channel frication slope, m/m
+    REAL, INTENT(IN)  :: Rh                    ! channel hydraulic radius, m
+    REAL, INTENT(IN)  :: dx                    ! time interval for HYDRO,=nlst_rt(did)%dtrt
+    REAL, INTENT(IN)  :: dt                    ! resolution for HYDRO,=nlst_rt(did)%dxrt0
+    REAL, INTENT(OUT) :: EHcapacity            ! sediment transport capacity
+
+    ! LOCAL VARIABLES
+    REAL                      :: ds        ! size fraction i diameter, m
+    REAL                      :: Cw        ! unit flow discharge, m2/s
+    REAL, PARAMETER           :: SG = 2.65 ! sediment specific gravity
+    REAL, PARAMETER           :: g = 9.8   ! gravitational acceleration, m2/s
+
+    if (SizeFr.eq.1) then
+    ds = 0.35/1000
+    elseif (SizeFr.eq.2) then
+    ds = 0.016/1000
+    elseif (SizeFr.eq.3) then
+    ds = 0.001/1000
+    endif
+
+
+!        UnitDischarge = abs(discharge/width)
+!        UnitDischarge = abs(discharge/dx)
+!        SoilType = isoil[jfrom][kfrom];
+!        LandUse = iman[jfrom][kfrom];
+
+    ! Hydraulic radius
+
+    ! Rh = (width*depth)/(width + 2 * depth)
+  
+    ! Flow velocity
+
+    ! V = (discharge/(width*depth)
+
+    ! Concentration by weight by size fraction
+
+    Cw = (0.05*(SG/(SG-1)) * abs(V*sf)/sqrt((SG-1)*g*ds) * sqrt(Rh*abs(sf)/((SG-1)*ds) ) )
+
+    ! Engelund and Hansen transport capacity (in m3)
+
+    EHcapacity = (discharge * Cw / 2.65)*dt
+
+!   print*, V,sf,Rh,discharge,Cw,EHcapacity,"V sf Rh discharge Cw EHcapacity, Cong Jiang 2022.01"
+
+ end subroutine EHcap
+
+! ---------------------------------------------------------------
+  subroutine TransferSed (ix,jx,NumFracts,jfrom,kfrom,jto,kto,jout,kout,SizeFr,Source,VolToTransfer,SusSed)!,sedout)
+  ! DESCRIPTION:
+  !
+  ! Description:
+  ! Transfers a certain volume of sediment, VolToTransfer, from 
+  ! an outgoing cell (jfrom,kfrom) to receiving cell (jto,kto).The 
+  ! source, can be the suspended, deposited or parent material in 
+  ! outgoing cell. The transferred volume of sed. will be added 
+  ! in all cases onto the suspended portion of the receiving cell. 
+  ! If the outgoing cell is the outlet cell, the VolToTransfer is 
+  ! not added into a receiving cell but to the variable that holds 
+  ! the total volume of sediment leaving the basin by size fraction
+
+    implicit none
+
+    INTEGER, INTENT(IN)  :: jfrom, kfrom, &
+                            jto, kto,     &
+                            jout,kout
+    INTEGER, INTENT(IN)  :: ix, jx, NumFracts, SizeFr
+    REAL, INTENT(IN)  :: VolToTransfer
+
+!    REAL, INTENT(INOUT),DIMENSION(NumFracts)  ::  sed_out  ! Size fraction L volume [m3] that has
+                                                           ! left the watershed during the simulation
+
+    REAL, INTENT(INOUT),DIMENSION(NumFracts,ix, jx)  :: Source        &  !
+                                                       ,SusSed   !Fraction i suspended sed. at cell (j,k) 
+     
+     ! For each size fraction, substracts the sediment volume that 
+     ! has been transported from the suspended, deposited or parent 
+     ! material of the outgoing cell
+
+     Source(SizeFr,jfrom,kfrom) = Source(SizeFr,jfrom,kfrom) - VolToTransfer
+ 
+     if(jfrom==jout .and. kfrom==kout) then
+
+     ! If outgoing cell is the outlet cell, keeps track by size 
+     ! fraction of the volume of sediment that left the basin 
+      
+ !    sed_out(SizeFr) = sed_out(SizeFr) + VolToTransfer
+ 
+     else
+
+     ! if outgoing cell is not the outlet cell, it adds by size */
+     ! fraction the transported sediment to the suspended portion */
+     ! of the receiving cell */
+     
+     SusSed(SizeFr,jto,kto) = SusSed(SizeFr,jto,kto) + VolToTransfer
+
+     endif
+
+   end subroutine TransferSed
+
+
+! ---------------------------------------------------------------
+  subroutine SedStats(ix,jx,NumFracts,dx,dt,ltype,hlake,elev,bank,fbed,SusSed,DepSed,ErodSed,SedConc,t_SedConc)
+  ! DESCRIPTION:
+  !
+  ! Net erosion, suspended/deposited/scoured volumes,
+  ! sediment concentrations and absolute max./min values 
+
+
+    implicit none
+    
+    INTEGER, INTENT(IN)  :: ix,jx ! number of grid in X and Y
+    INTEGER, INTENT(IN)  :: NumFracts   ! Maximum number of size fractions found any of
+                                        ! the soil types defined in the soil type
+                                        ! input grid
+    REAL, INTENT(IN)  :: dx             !
+    REAL, INTENT(IN)  :: dt             ! timestep interval, s
+   
+    INTEGER,INTENT(IN), DIMENSION(ix, jx)   :: ltype !
+    REAL, INTENT(IN), DIMENSION(ix, jx) :: bank, hlake, fbed, elev
+    REAL, INTENT(IN), DIMENSION(NumFracts, ix, jx) :: SusSed, DepSed, ErodSed
+    REAL, INTENT(OUT), DIMENSION(NumFracts, ix, jx) :: SedConc ! Sediment concentration mg/l
+    REAL, INTENT(OUT), DIMENSION(ix, jx) :: t_SedConc ! Total sediment concentration mg/l  
+
+
+    ! LOCAL VARIABLES
+    INTEGER                       :: j,k,SizeFr      !
+    REAL                          :: totscourv
+    REAL, DIMENSION(ix, jx)       :: h, V
+    REAL, DIMENSION(ix, jx)       :: t_SusSed, t_DepSed, t_NetEros
+    REAL, PARAMETER               :: SG = 2.65  ! sediment specific gravity
+
+
+
+
+    !
+      do k = 1, jx
+         do j = 1, ix
+            !
+            if (ltype(j,k) .eq. 1) then
+            
+               totscourv = 0.0
+ 
+               h(j,k) = hlake(j,k)-(elev(j,k)-bank(j,k))
+
+               if (hlake(j,k).gt.elev(j,k)) then
+
+                  V(j,k) = (hlake(j,k)-elev(j,k))*dx*dx+bank(j,k)*dx*dx*fbed(j,k)
+
+               else
+
+                  V(j,k) =  h(j,k)*dx*dx*fbed(j,k)
+
+               endif
+                  
+                  ! c.jiang, 2021.01
+                  ! For each time step and cell resets the following variables to zero
+                  t_SusSed(j,k) = 0.
+                  t_DepSed(j,k) = 0.
+                  totscourv = 0.
+                  do SizeFr = 1, NumFracts
+              
+                  ! Total suspended sed. volume (m3)
+
+                  t_SusSed(j,k) = t_SusSed(j,k) + SusSed(SizeFr,j,k)
+
+                  ! Total deposited sed. volume (m3)
+  
+                  t_DepSed(j,k) = t_DepSed(j,k) +  DepSed(SizeFr,j,k)
+           
+                  ! Total scoured sediment volume (m3)
+               
+                  totscourv = totscourv + ErodSed(SizeFr,j,k)
+
+                  enddo
+   
+               ! Net (deposited - eroded) sediment volume (mm)
+    
+               t_NetEros(j,k) = (t_DepSed(j,k) + totscourv) * 1000 / (dx*dx)      
+
+               ! Elevation changes -> modify the elevation grid (in m) 
+               ! NOTE: The DEM at the end of the simulation might have 
+               ! changed. We need a print out of the new elevation map 
+
+               ! if(bank(j,k).le.0.5) then
+
+               ! e(j,k) = e(j,k) + t_NetEros(j,k) * 0.001
+
+               ! else
+ 
+               ! ec(j,k) =  ec(j,k) + t_NetEros(j,k) * 0.001
+
+               ! endif
+  
+               ! Absolute max. flux conc., susp. volume and suspended 
+               ! conc. at any time step and at any overland cell
+
+!               if(bank(j,k) .le. 0.5) then
+!
+!                  !amaxSusOv = MAX(t_SusSed(j,k),amaxSusOv)
+!              
+!                  ! Limiting the mim. water depth to 0.5mm will reduce 
+!                  ! very high concentration calculations 
+!
+!                  ! Total suspended concentration in [mg/l]
+!
+!                     if(h(j,k) > 5E-4)  then
+!               
+!                        do SizeFr = 1, NumFracts
+!
+!                        ! Suspended sediment concentration [mg/l]
+!         
+!                        SedConc(SizeFr,j,k) = SusSed(SizeFr,j,k) * G *1E6 / V(j,k)
+!               
+!                        end do
+!
+!                     t_SedConc(j,k) = t_SusSed(j,k)* G *1E6 / (h(j,k)*dx*dx) 
+!
+!                     amaxSusCov = MAX(amaxSusCov,t_SedConc(j,k)
+!
+!                     else
+!
+!                        do SizeFr = 1, NumFracts
+!
+!                        ! Suspended sediment concentration [mg/l]
+!
+!                        SedConc(SizeFr,j,k) = 0.0
+!
+!                        end do
+!
+!                      t_SedConc(j,k) = 0.0
+!
+!                      endif
+!              endif
+!
+              ! Absolute max. flux conc., susp. volume and suspended 
+              ! conc. at any time step and at any channel cell 
+              ! Total suspended concentration in [mg/l]
+              
+!              if(bank(j,k) .gt. 0.5) then
+
+              ! amaxSusCh = MAX(amaxSusCh,t_SusSed(j,k))
+
+                 if(h(j,k) > 5E-4) then
+
+                    do SizeFr = 1, NumFracts
+
+                    ! Suspended sediment concentration [mg/l]
+
+                    SedConc(SizeFr,j,k) = SusSed(SizeFr,j,k) * SG * 1E6 / V(j,k)
+                    enddo
+
+                    t_SedConc(j,k) = t_SusSed(j,k) * SG* 1E6 / V(j,k)
+
+                 ! amaxSusCch = MAX(amaxSusCch,t_SedConc(j,k()
+
+                 else
+
+                     do SizeFr = 1, NumFracts
+
+                     ! Suspended sediment concentration [mg/l]
+                     SedConc(SizeFr,j,k) = 0.0
+              
+                     enddo
+
+                  t_SedConc(j,k) = 0
+
+                 endif 
+!              endif
+
+            endif
+         end do
+      end do
+
+end subroutine SedStats
+
+  subroutine RainIntensity_pdf(dt,rmax,AVrain,EI30)
+
+    implicit none 
+    
+    INTEGER, INTENT(IN)  :: rmax        ! number of intervals of rainfall instesity
+    REAL,    INTENT(IN)  :: dt
+    REAL,    INTENT(IN)  :: AVrain      ! 
+    REAL,    INTENT(OUT) :: EI30        !
+    REAL(8), parameter :: drainI = 0.1d0
+! local variable
+    INTEGER                            :: i
+    REAL(8), dimension(:), allocatable :: rainI, rainIpdf, rainIdpdf
+    REAL(8)                            :: dummy, EI30_av
+
+   allocate(rainI(rmax))
+   allocate(rainIpdf(rmax))
+   allocate(rainIdpdf(rmax))
+
+! Rainfall Intensity Exponential Distribution, parameters c
+
+   do i = 1, rmax
+
+      rainI(i)=(i-0.5)*drainI
+
+      rainIpdf(i)=1.0/AVrain*exp(-rainI(i)/AVrain)
+
+      rainIdpdf(i)=rainIpdf(i)*drainI
+   enddo
+      dummy=sum(rainIdpdf)
+      rainIdpdf=rainIdpdf/sum(rainIdpdf)
+
+      if (dummy.lt.0.8 .or. dummy.gt.1.2) then
+        print*, "dummy",dummy,"AVrain",AVrain
+        call hydro_stop("WARNING: rainfall intensity pdf does not sum up to 1")
+      endif
+
+    EI30 = 0.
+   do i = 1, rmax
+     
+      rainI(i)=(i-0.5)*drainI
+
+      if (AVrain.gt.76) then
+ 
+         EI30_av = 0.283 * (rainI(i)*dt/3600.) * rainI(i)
+
+      else
+
+         EI30_av = max(0.119+0.0873*log10(rainI(i)),0.) * (rainI(i) * (dt/3600.)) * rainI(i)
+     
+      endif
+
+      EI30 = EI30 + EI30_av  * rainIdpdf(i)
+
+   enddo
+
+   deallocate(rainI)
+   deallocate(rainIpdf)
+   deallocate(rainIdpdf)
+
+end subroutine RainIntensity_pdf
 
 end module module_rt_rt2d

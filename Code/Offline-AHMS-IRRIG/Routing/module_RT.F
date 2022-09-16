@@ -427,7 +427,7 @@ CONTAINS
                             rt2d(did)%hlake, rt2d(did)%rough,     rt2d(did)%sdelev,  &  ! Cong,20190715
                             rt2d(did)%sdep,  rt2d(did)%width_obs, rt2d(did)%hycond,  &
                             rt2d(did)%poros, rt2d(did)%hbeg,      rt2d(did)%aqthick, &
-                            nlst_rt(did)%RT2D_FLNM, rt2d(did)%topo  )
+                            nlst_rt(did)%RT2D_FLNM, rt2d(did)%topo, rt2d(did)%irgswfract  )
 
 
 !             CALL readIRG2d( rt2d(did)%ix,     rt2d(did)%jx,                           &  ! Jiang, 2020.12

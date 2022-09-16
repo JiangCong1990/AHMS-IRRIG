@@ -1,5 +1,5 @@
-GFORTRAN module version '0' created from module_namelist.f on Tue Sep 21 12:06:52 2021
-MD5:14b56bd374f8f1379d6ce1a6ef79f080 -- If you edit this, you'll get what you deserve.
+GFORTRAN module version '0' created from module_namelist.f on Mon Aug 22 00:48:59 2022
+MD5:870e16ed8cfe88eb09937a432ec52e1a -- If you edit this, you'll get what you deserve.
 
 (() () () () () () () () () () () () () () () () () () () () () () () ()
 () () ())
@@ -120,109 +120,113 @@ UNKNOWN) UNKNOWN-ACCESS ()) (51 'dt_flowtran' (REAL 4 0 0 REAL ()) () (
 UNKNOWN-FL UNKNOWN-INTENT UNKNOWN-PROC UNKNOWN UNKNOWN) UNKNOWN-ACCESS ())
 (52 'irrig_option' (INTEGER 4 0 0 INTEGER ()) () (UNKNOWN-FL
 UNKNOWN-INTENT UNKNOWN-PROC UNKNOWN UNKNOWN) UNKNOWN-ACCESS ()) (53
-'gwprediag' (LOGICAL 4 0 0 LOGICAL ()) () (UNKNOWN-FL UNKNOWN-INTENT
-UNKNOWN-PROC UNKNOWN UNKNOWN) UNKNOWN-ACCESS ()) (54 'gwspinup' (
-LOGICAL 4 0 0 LOGICAL ()) () (UNKNOWN-FL UNKNOWN-INTENT UNKNOWN-PROC
-UNKNOWN UNKNOWN) UNKNOWN-ACCESS ()) (55 'dtrt' (REAL 4 0 0 REAL ()) () (
+'indexeros' (INTEGER 4 0 0 INTEGER ()) () (UNKNOWN-FL UNKNOWN-INTENT
+UNKNOWN-PROC UNKNOWN UNKNOWN) UNKNOWN-ACCESS ()) (54 'numfracts' (
+INTEGER 4 0 0 INTEGER ()) () (UNKNOWN-FL UNKNOWN-INTENT UNKNOWN-PROC
+UNKNOWN UNKNOWN) UNKNOWN-ACCESS ()) (55 'gwprediag' (LOGICAL 4 0 0
+LOGICAL ()) () (UNKNOWN-FL UNKNOWN-INTENT UNKNOWN-PROC UNKNOWN UNKNOWN)
+UNKNOWN-ACCESS ()) (56 'gwspinup' (LOGICAL 4 0 0 LOGICAL ()) () (
 UNKNOWN-FL UNKNOWN-INTENT UNKNOWN-PROC UNKNOWN UNKNOWN) UNKNOWN-ACCESS ())
-(56 'dxrt0' (REAL 4 0 0 REAL ()) () (UNKNOWN-FL UNKNOWN-INTENT
-UNKNOWN-PROC UNKNOWN UNKNOWN) UNKNOWN-ACCESS ()) (57 'dtct' (REAL 4 0 0
+(57 'dtrt' (REAL 4 0 0 REAL ()) () (UNKNOWN-FL UNKNOWN-INTENT
+UNKNOWN-PROC UNKNOWN UNKNOWN) UNKNOWN-ACCESS ()) (58 'dxrt0' (REAL 4 0 0
 REAL ()) () (UNKNOWN-FL UNKNOWN-INTENT UNKNOWN-PROC UNKNOWN UNKNOWN)
-UNKNOWN-ACCESS ()) (58 'gwchancondconstin' (REAL 4 0 0 REAL ()) () (
-UNKNOWN-FL UNKNOWN-INTENT UNKNOWN-PROC UNKNOWN UNKNOWN) UNKNOWN-ACCESS ())
-(59 'gwchancondconstout' (REAL 4 0 0 REAL ()) () (UNKNOWN-FL
+UNKNOWN-ACCESS ()) (59 'dtct' (REAL 4 0 0 REAL ()) () (UNKNOWN-FL
 UNKNOWN-INTENT UNKNOWN-PROC UNKNOWN UNKNOWN) UNKNOWN-ACCESS ()) (60
-'gwihshift' (REAL 4 0 0 REAL ()) () (UNKNOWN-FL UNKNOWN-INTENT
-UNKNOWN-PROC UNKNOWN UNKNOWN) UNKNOWN-ACCESS ()) (61 'route_topo_f' (
-CHARACTER 1 0 0 CHARACTER ((CONSTANT (INTEGER 4 0 0 INTEGER ()) 0 '256')))
-() (UNKNOWN-FL UNKNOWN-INTENT UNKNOWN-PROC UNKNOWN UNKNOWN)
-UNKNOWN-ACCESS (CONSTANT (CHARACTER 1 0 0 CHARACTER (())) 0 256
-'                                                                                                                                                                                                                                                                '))
-(62 'route_chan_f' (CHARACTER 1 0 0 CHARACTER ((CONSTANT (INTEGER 4 0 0
+'gwchancondconstin' (REAL 4 0 0 REAL ()) () (UNKNOWN-FL UNKNOWN-INTENT
+UNKNOWN-PROC UNKNOWN UNKNOWN) UNKNOWN-ACCESS ()) (61 'gwchancondconstout'
+(REAL 4 0 0 REAL ()) () (UNKNOWN-FL UNKNOWN-INTENT UNKNOWN-PROC UNKNOWN
+UNKNOWN) UNKNOWN-ACCESS ()) (62 'gwihshift' (REAL 4 0 0 REAL ()) () (
+UNKNOWN-FL UNKNOWN-INTENT UNKNOWN-PROC UNKNOWN UNKNOWN) UNKNOWN-ACCESS ())
+(63 'route_topo_f' (CHARACTER 1 0 0 CHARACTER ((CONSTANT (INTEGER 4 0 0
 INTEGER ()) 0 '256'))) () (UNKNOWN-FL UNKNOWN-INTENT UNKNOWN-PROC
 UNKNOWN UNKNOWN) UNKNOWN-ACCESS (CONSTANT (CHARACTER 1 0 0 CHARACTER (()))
 0 256
 '                                                                                                                                                                                                                                                                '))
-(63 'route_link_f' (CHARACTER 1 0 0 CHARACTER ((CONSTANT (INTEGER 4 0 0
+(64 'route_chan_f' (CHARACTER 1 0 0 CHARACTER ((CONSTANT (INTEGER 4 0 0
 INTEGER ()) 0 '256'))) () (UNKNOWN-FL UNKNOWN-INTENT UNKNOWN-PROC
 UNKNOWN UNKNOWN) UNKNOWN-ACCESS (CONSTANT (CHARACTER 1 0 0 CHARACTER (()))
 0 256
 '                                                                                                                                                                                                                                                                '))
-(64 'route_lake_f' (CHARACTER 1 0 0 CHARACTER ((CONSTANT (INTEGER 4 0 0
+(65 'route_link_f' (CHARACTER 1 0 0 CHARACTER ((CONSTANT (INTEGER 4 0 0
 INTEGER ()) 0 '256'))) () (UNKNOWN-FL UNKNOWN-INTENT UNKNOWN-PROC
 UNKNOWN UNKNOWN) UNKNOWN-ACCESS (CONSTANT (CHARACTER 1 0 0 CHARACTER (()))
 0 256
 '                                                                                                                                                                                                                                                                '))
-(65 'route_direction_f' (CHARACTER 1 0 0 CHARACTER ((CONSTANT (INTEGER 4
+(66 'route_lake_f' (CHARACTER 1 0 0 CHARACTER ((CONSTANT (INTEGER 4 0 0
+INTEGER ()) 0 '256'))) () (UNKNOWN-FL UNKNOWN-INTENT UNKNOWN-PROC
+UNKNOWN UNKNOWN) UNKNOWN-ACCESS (CONSTANT (CHARACTER 1 0 0 CHARACTER (()))
+0 256
+'                                                                                                                                                                                                                                                                '))
+(67 'route_direction_f' (CHARACTER 1 0 0 CHARACTER ((CONSTANT (INTEGER 4
 0 0 INTEGER ()) 0 '256'))) () (UNKNOWN-FL UNKNOWN-INTENT UNKNOWN-PROC
 UNKNOWN UNKNOWN) UNKNOWN-ACCESS (CONSTANT (CHARACTER 1 0 0 CHARACTER (()))
 0 256
 '                                                                                                                                                                                                                                                                '))
-(66 'route_order_f' (CHARACTER 1 0 0 CHARACTER ((CONSTANT (INTEGER 4 0 0
+(68 'route_order_f' (CHARACTER 1 0 0 CHARACTER ((CONSTANT (INTEGER 4 0 0
 INTEGER ()) 0 '256'))) () (UNKNOWN-FL UNKNOWN-INTENT UNKNOWN-PROC
 UNKNOWN UNKNOWN) UNKNOWN-ACCESS (CONSTANT (CHARACTER 1 0 0 CHARACTER (()))
 0 256
 '                                                                                                                                                                                                                                                                '))
-(67 'gwbasmskfil' (CHARACTER 1 0 0 CHARACTER ((CONSTANT (INTEGER 4 0 0
+(69 'gwbasmskfil' (CHARACTER 1 0 0 CHARACTER ((CONSTANT (INTEGER 4 0 0
 INTEGER ()) 0 '256'))) () (UNKNOWN-FL UNKNOWN-INTENT UNKNOWN-PROC
 UNKNOWN UNKNOWN) UNKNOWN-ACCESS (CONSTANT (CHARACTER 1 0 0 CHARACTER (()))
 0 256
 '                                                                                                                                                                                                                                                                '))
-(68 'gwstrmfil' (CHARACTER 1 0 0 CHARACTER ((CONSTANT (INTEGER 4 0 0
+(70 'gwstrmfil' (CHARACTER 1 0 0 CHARACTER ((CONSTANT (INTEGER 4 0 0
 INTEGER ()) 0 '256'))) () (UNKNOWN-FL UNKNOWN-INTENT UNKNOWN-PROC
 UNKNOWN UNKNOWN) UNKNOWN-ACCESS (CONSTANT (CHARACTER 1 0 0 CHARACTER (()))
 0 256
 '                                                                                                                                                                                                                                                                '))
-(69 'geo_finegrid_flnm' (CHARACTER 1 0 0 CHARACTER ((CONSTANT (INTEGER 4
+(71 'geo_finegrid_flnm' (CHARACTER 1 0 0 CHARACTER ((CONSTANT (INTEGER 4
 0 0 INTEGER ()) 0 '256'))) () (UNKNOWN-FL UNKNOWN-INTENT UNKNOWN-PROC
 UNKNOWN UNKNOWN) UNKNOWN-ACCESS (CONSTANT (CHARACTER 1 0 0 CHARACTER (()))
 0 256
 '                                                                                                                                                                                                                                                                '))
-(70 'rt2d_flnm' (CHARACTER 1 0 0 CHARACTER ((CONSTANT (INTEGER 4 0 0
+(72 'rt2d_flnm' (CHARACTER 1 0 0 CHARACTER ((CONSTANT (INTEGER 4 0 0
 INTEGER ()) 0 '256'))) () (UNKNOWN-FL UNKNOWN-INTENT UNKNOWN-PROC
 UNKNOWN UNKNOWN) UNKNOWN-ACCESS (CONSTANT (CHARACTER 1 0 0 CHARACTER (()))
 0 256
 '                                                                                                                                                                                                                                                                '))
-(71 'restart_outname' (CHARACTER 1 0 0 CHARACTER ((CONSTANT (INTEGER 4 0
+(73 'restart_outname' (CHARACTER 1 0 0 CHARACTER ((CONSTANT (INTEGER 4 0
 0 INTEGER ()) 0 '256'))) () (UNKNOWN-FL UNKNOWN-INTENT UNKNOWN-PROC
 UNKNOWN UNKNOWN) UNKNOWN-ACCESS (CONSTANT (CHARACTER 1 0 0 CHARACTER (()))
 0 256
 '                                                                                                                                                                                                                                                                '))
-(72 'gw2d_outname' (CHARACTER 1 0 0 CHARACTER ((CONSTANT (INTEGER 4 0 0
+(74 'gw2d_outname' (CHARACTER 1 0 0 CHARACTER ((CONSTANT (INTEGER 4 0 0
 INTEGER ()) 0 '256'))) () (UNKNOWN-FL UNKNOWN-INTENT UNKNOWN-PROC
 UNKNOWN UNKNOWN) UNKNOWN-ACCESS (CONSTANT (CHARACTER 1 0 0 CHARACTER (()))
 0 256
 '                                                                                                                                                                                                                                                                '))
-(73 'rt2d_outname' (CHARACTER 1 0 0 CHARACTER ((CONSTANT (INTEGER 4 0 0
+(75 'rt2d_outname' (CHARACTER 1 0 0 CHARACTER ((CONSTANT (INTEGER 4 0 0
 INTEGER ()) 0 '256'))) () (UNKNOWN-FL UNKNOWN-INTENT UNKNOWN-PROC
 UNKNOWN UNKNOWN) UNKNOWN-ACCESS (CONSTANT (CHARACTER 1 0 0 CHARACTER (()))
 0 256
 '                                                                                                                                                                                                                                                                '))
-(74 'frxst_pts_out' (INTEGER 4 0 0 INTEGER ()) () (UNKNOWN-FL
-UNKNOWN-INTENT UNKNOWN-PROC UNKNOWN UNKNOWN) UNKNOWN-ACCESS ()) (75
+(76 'frxst_pts_out' (INTEGER 4 0 0 INTEGER ()) () (UNKNOWN-FL
+UNKNOWN-INTENT UNKNOWN-PROC UNKNOWN UNKNOWN) UNKNOWN-ACCESS ()) (77
 'chrtout_domain' (INTEGER 4 0 0 INTEGER ()) () (UNKNOWN-FL
-UNKNOWN-INTENT UNKNOWN-PROC UNKNOWN UNKNOWN) UNKNOWN-ACCESS ()) (76
+UNKNOWN-INTENT UNKNOWN-PROC UNKNOWN UNKNOWN) UNKNOWN-ACCESS ()) (78
 'chrtout_grid' (INTEGER 4 0 0 INTEGER ()) () (UNKNOWN-FL UNKNOWN-INTENT
-UNKNOWN-PROC UNKNOWN UNKNOWN) UNKNOWN-ACCESS ()) (77 'lsmout_doman' (
+UNKNOWN-PROC UNKNOWN UNKNOWN) UNKNOWN-ACCESS ()) (79 'lsmout_doman' (
 INTEGER 4 0 0 INTEGER ()) () (UNKNOWN-FL UNKNOWN-INTENT UNKNOWN-PROC
-UNKNOWN UNKNOWN) UNKNOWN-ACCESS ()) (78 'rtout_domain' (INTEGER 4 0 0
+UNKNOWN UNKNOWN) UNKNOWN-ACCESS ()) (80 'rtout_domain' (INTEGER 4 0 0
 INTEGER ()) () (UNKNOWN-FL UNKNOWN-INTENT UNKNOWN-PROC UNKNOWN UNKNOWN)
-UNKNOWN-ACCESS ()) (79 'output_gw' (INTEGER 4 0 0 INTEGER ()) () (
+UNKNOWN-ACCESS ()) (81 'output_gw' (INTEGER 4 0 0 INTEGER ()) () (
 UNKNOWN-FL UNKNOWN-INTENT UNKNOWN-PROC UNKNOWN UNKNOWN) UNKNOWN-ACCESS ())
-(80 'outlake' (INTEGER 4 0 0 INTEGER ()) () (UNKNOWN-FL UNKNOWN-INTENT
-UNKNOWN-PROC UNKNOWN UNKNOWN) UNKNOWN-ACCESS ()) (81 'output_rt2d' (
+(82 'outlake' (INTEGER 4 0 0 INTEGER ()) () (UNKNOWN-FL UNKNOWN-INTENT
+UNKNOWN-PROC UNKNOWN UNKNOWN) UNKNOWN-ACCESS ()) (83 'output_rt2d' (
 INTEGER 4 0 0 INTEGER ()) () (UNKNOWN-FL UNKNOWN-INTENT UNKNOWN-PROC
 UNKNOWN UNKNOWN) UNKNOWN-ACCESS ())) PUBLIC (() ()) () 0 0)
-82 'nlst_rt' 'module_namelist' 'nlst_rt' 1 ((VARIABLE UNKNOWN-INTENT
+84 'nlst_rt' 'module_namelist' 'nlst_rt' 1 ((VARIABLE UNKNOWN-INTENT
 UNKNOWN-PROC UNKNOWN EXPLICIT-SAVE DIMENSION) (DERIVED 4 0 0 DERIVED ())
 0 0 () (1 EXPLICIT (CONSTANT (INTEGER 4 0 0 INTEGER ()) 0 '1') (
 CONSTANT (INTEGER 4 0 0 INTEGER ()) 0 '5')) 0 () () () 0 0)
-83 'read_rt_nlst' 'module_namelist' 'read_rt_nlst' 1 ((PROCEDURE
+85 'read_rt_nlst' 'module_namelist' 'read_rt_nlst' 1 ((PROCEDURE
 UNKNOWN-INTENT MODULE-PROC DECL UNKNOWN SUBROUTINE) (UNKNOWN 0 0 0
-UNKNOWN ()) 84 0 (85) () 0 () () () 0 0)
-85 'nlst' '' 'nlst' 84 ((VARIABLE UNKNOWN-INTENT UNKNOWN-PROC UNKNOWN
+UNKNOWN ()) 86 0 (87) () 0 () () () 0 0)
+87 'nlst' '' 'nlst' 86 ((VARIABLE UNKNOWN-INTENT UNKNOWN-PROC UNKNOWN
 UNKNOWN DUMMY) (DERIVED 4 0 0 DERIVED ()) 0 0 () () 0 () () () 0 0)
 )
 
 ('max_domain' 0 2 'module_namelist' 0 3 'namelist_rt_field' 0 4 'nlst_rt'
-0 82 'read_rt_nlst' 0 83)
+0 84 'read_rt_nlst' 0 85)

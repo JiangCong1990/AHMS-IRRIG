@@ -12,6 +12,9 @@
 	integer :: count_flowout=0! counter for averaging-streamflow output 
         real    :: its, ite, jts, jte
         integer :: istep = 0
+        integer :: NumFracts      ! Maximum number of size fractions found any of the
+                                  ! soil types defined in the soil type input grid
+
 
         integer, allocatable, dimension(:,:) :: &
                 ltype,          & ! land surface type
@@ -35,15 +38,21 @@
 		aqthick,        & ! unconfined aquifer thickness [m]
                 bot,            & ! lowest groundwater head [m]
 		slope,          & ! slope 
+                GINDEX,         & ! Gully index
 		sdelev,         & ! standard deviation of elevation
                 sbedthick,      & ! thickness of streambed [m]
-                sabs              ! slope abs
+                sabs,           & ! slope abs
+                LAI,            & ! leaf area index
+                kfactor           ! k factor soil erodibility
+
 
         real(kind=8), allocatable, dimension(:,:) :: &
 		volaq             ! water storage of aquifer (below bottom of soil layers) [m]
 
         real,    allocatable, dimension(:,:) :: &
                 irg,            & !
+                actirg,         & ! actual irrigation with constrained by available water in river
+                irgswfract,     & !
                 irgrw,          & !
                 irggw             !
 
@@ -69,7 +78,19 @@
                 hlakeav,        & ! annual average hlake for gw spinup mode
                 sinfilav,       & ! annual average sinfil for gw spinup mode  	
 	        streamflux,  	& ! stream flux in grid [m3/s]
-                veloc
+                veloc,          & !
+                qsKR,           & ! Transport Capacity using the Kilinc-Richardson equation
+                t_SedFlux,      & ! 
+                T_SedConc
+
+         real,    allocatable, dimension(:,:,:) :: &
+                qsEH,           &
+                SusSed,         &
+                DepSed,         &
+                ErodSed,        &
+                SedFlux,        &
+                SedConc
+
 
         real,    allocatable, dimension(:,:) :: &
                 w_sf,          &  ! grid-mean surface water storage [m]
@@ -107,6 +128,7 @@
      
         real,    allocatable, dimension(:)      :: &
                 fluxtran,      &  ! flux of specified transects 
+                sedfluxtranav, &  ! averaging flux of specified transects
 		fluxtranav        ! averaging flux of specified transects
 
         integer, allocatable, dimension(:)      :: &

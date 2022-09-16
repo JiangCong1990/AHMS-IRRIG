@@ -29,7 +29,8 @@ CONTAINS
                                 solinfl, hgwrt,               &
                                 ht,      prcp,      evap,     &
                                 ii,      jj,        kk,       &
-                                xland,   IRRIG )
+                                xland,   IRRIG,     K1_FACTOR,& 
+                                slope,   GINDEX,    LAI )
        implicit none
 
        integer,intent(in) :: ii     ! grid number in west-west direction
@@ -47,7 +48,11 @@ CONTAINS
        real,   intent(in)    :: ht(ii,jj)   ! terrain height, m
        real,   intent(in)    :: prcp(ii,jj) ! precipitation, mm
        real,   intent(in)    :: evap(ii,jj) ! evapotranspiration, mm
-       real,   intent(in)    :: IRRIG(ii,jj) ! irrigation, mm
+       real,   intent(inout) :: IRRIG(ii,jj) ! irrigation, mm
+       real,   intent(in)    :: K1_FACTOR(ii,jj) !
+       real,   intent(in)    :: slope(ii,jj) !
+       real,   intent(in)    :: GINDEX(ii,jj) !
+       real,   intent(in)    :: LAI(ii,jj) !
        real,   intent(inout) :: xland(ii,jj)! index of land (=1) and water (=2)
 
 !lpr add 2014-06-24
@@ -106,6 +111,10 @@ CONTAINS
         rt_domain(did)%PRECIPRT = prcp(1:ii,1:jj)     ! timestep precipitation, mm
         rt_domain(did)%EVAPRT   = evap(1:ii,1:jj)     ! timetep evapotranspiration, mm
         rt_domain(did)%IRRIG    = IRRIG(1:ii,1:jj)    ! timestep irrigation, mm cjiang,water use, use factorfrom papera jia, 2006
+        rt_domain(did)%K1_FACTOR= K1_FACTOR(1:ii,1:jj)!
+        rt_domain(did)%slope    = slope(1:ii,1:jj)    !
+        rt_domain(did)%GINDEX   = GINDEX(1:ii,1:jj)   !
+        rt_domain(did)%LAI      = LAI(1:ii,1:jj)      !
 #ifdef MPP_LAND
         if(my_id .eq. IO_id) then
            call  time_seconds(t1)
@@ -151,6 +160,12 @@ CONTAINS
           hgwrt(1:ii,1:jj) = ht(1:ii,1:jj) &         ! transfer depth of groundwater head
                            - (gw2d(did)%elev - gw2d(did)%h)
        ENDIF
+
+      ! constrained by available river water
+
+       IRRIG(1:ii,1:jj) = rt_domain(did)%IRRIG(:,:)
+
+       print*, rt_domain(did)%IRRIG(85,4), "rt_domain(did)%IRRIG(85,4)"
 
 !? not sure for the following
 !           grid%xice(its:ite,jts:jte) = rt_domain(did)%sice

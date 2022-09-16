@@ -137,7 +137,7 @@
   REAL,    allocatable, DIMENSION(:,:)     :: QSTRMVOLRT_TS,LAKE_INFLORT_TS
   REAL,    allocatable, DIMENSION(:,:)     :: QSTRMVOLRT_DUM,LAKE_INFLORT_DUM
   REAL,    allocatable, DIMENSION(:,:)     :: INFXSWGT, ywtmp
-  REAL,    allocatable, DIMENSION(:)       :: SMCAGGRT,STCAGGRT,SH2OAGGRT
+  REAL,    allocatable, DIMENSION(:)       :: SMCAGGRT,STCAGGRT,SH2OAGGRT,IRRIGAGGRT
   REAL                                     :: INFXSAGG1RT,SFCHEADAGG1RT,SFCHEADAGGRT
   REAL,    allocatable, DIMENSION(:,:,:)   :: dist  ! 8 direction of distance
   REAL,    allocatable, DIMENSION(:,:)     :: GWHEADAGGRT ! Qian, 2016.06
@@ -180,6 +180,7 @@
       REAL,    allocatable, DIMENSION(:,:,:) :: SMC,STC,SH2OX
       REAL,    allocatable, DIMENSION(:,:)   :: SMCMAX1,SMCWLT1,SMCREF1
       REAL,    allocatable, DIMENSION(:,:)   :: SUCSAT1,BSW1            !Qian, 2016.06
+      REAL,    allocatable, DIMENSION(:,:)   :: K1_FACTOR,LAI,slope,GINDEX  !C.Jiang, 2020.10
       INTEGER, allocatable, DIMENSION(:,:)   :: VEGTYP 
       REAL,    allocatable, DIMENSION(:)     :: SLDPTH
 

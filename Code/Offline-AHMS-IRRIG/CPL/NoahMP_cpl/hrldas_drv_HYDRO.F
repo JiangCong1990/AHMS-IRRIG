@@ -4,7 +4,8 @@
                                     solinfl, hgwrt,     xland,    &
                                     ht,      prcp,      evap,     &
                                     ii,      jj,        kk,       &
-                                    IRRIG     )
+                                    IRRIG,   K1_FACTOR, slope,    &
+                                    GINDEX,  LAI )
           use module_hrldas_HYDRO, only: hrldas_cpl_HYDRO
           implicit none
           integer:: ii,jj,kk, k
@@ -20,6 +21,10 @@
           real,dimension(ii,jj)    :: prcp      ! precipitation, mm
           real,dimension(ii,jj)    :: evap      ! evaptranspiration, mm
           real,dimension(ii,jj)    :: IRRIG     ! irrigation, mm
+          real,dimension(ii,jj)    :: K1_FACTOR !
+          real,dimension(ii,jj)    :: slope     !
+          real,dimension(ii,jj)    :: GINDEX    !
+          real,dimension(ii,jj)    :: LAI       !
           real,dimension(ii,jj)    :: xland     ! index of land (=1) and water (=2)
 
           do k = 1, kk
@@ -32,7 +37,8 @@
                                 soldrain,solinfl, hgwrt, &
                                 ht,      prcp,    evap,  &
                                 ii,      jj,      kk,    &
-                                xland,   IRRIG  )  
+                                xland,   IRRIG,   K1_FACTOR, &
+                                slope,   GINDEX,  LAI )  
 
           do k = 1, kk
                STC_io(:,k,:)   = STC(1:ii,1:jj,k)

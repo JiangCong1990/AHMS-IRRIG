@@ -1,6 +1,6 @@
 &NOAHLSM_OFFLINE
 ! directory of output files
-  OUTDIR = '/scratch/cjiang/NOAHMP_OUT/NOAHMP_OUT_20km_hydro_test354'
+  OUTDIR = '/scratch/cjiang/NOAHMP_OUT/NOAHMP_OUT_20km_hydro_test352'
 
 ! directory of geo-data
 ! providing geo info., projection info., XLAND, SEAICE, HGT, TMN, LANDUSE, SOILTYPE
@@ -14,7 +14,21 @@
   GEO_STATIC_FLNM = "/home/cjiang1/NOAHMP_IN/Loess_Plateau_20km/geo_em.d01.nc"
 
 !irrigation option
- irrigation_option = 1
+! **0 -> No irrigation
+!   1 -> Irrigation ON
+!   2 -> irrigation trigger based on crop season Planting and harvesting dates
+!  *3 -> irrigation trigger based on LAI threshold
+ irrigation_option = 3
+
+!irrigation method option
+! **0 -> method based on geo_em fractions
+!   1 -> sprinkler method
+!   2 -> micro/drip irrigation
+!   3 -> surface flooding
+ irrigation_method_option = 3
+
+!soil erosion option
+ erosion_option = 4
 
 ! MMF_RUNOFF_FILE = "/raid/weiyu/HRLDAS_V3.5_wrk/data/wrfleafxyz_d01.nc"
 

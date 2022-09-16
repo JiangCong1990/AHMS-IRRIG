@@ -1,5 +1,5 @@
-GFORTRAN module version '0' created from module_sf_noahmplsm.f on Tue Sep 21 12:06:59 2021
-MD5:b435ff7a178f3f84bd6a1209cad321a0 -- If you edit this, you'll get what you deserve.
+GFORTRAN module version '0' created from module_sf_noahmplsm.f on Mon Aug 22 00:49:06 2022
+MD5:0cf244726e7153ff86bd3eb2286fa124 -- If you edit this, you'll get what you deserve.
 
 (() () () () () () () () () () () () () () () () () () () () () () () ()
 () () ())
@@ -48,233 +48,291 @@ CONSTANT (INTEGER 4 0 0 INTEGER ()) 0 '27')) 0 () () () 0 0)
 UNKNOWN-PROC UNKNOWN UNKNOWN DIMENSION IN_NAMELIST) (REAL 4 0 0 REAL ())
 0 0 () (1 EXPLICIT (CONSTANT (INTEGER 4 0 0 INTEGER ()) 0 '1') (
 CONSTANT (INTEGER 4 0 0 INTEGER ()) 0 '27')) 0 () () () 0 0)
-11 'den' 'noahmp_veg_parameters' 'den' 1 ((VARIABLE UNKNOWN-INTENT
+11 'default_crop_table' 'noahmp_veg_parameters' 'default_crop_table' 1 (
+(VARIABLE UNKNOWN-INTENT UNKNOWN-PROC UNKNOWN UNKNOWN) (INTEGER 4 0 0
+INTEGER ()) 0 0 () () 0 () () () 0 0)
+12 'den' 'noahmp_veg_parameters' 'den' 1 ((VARIABLE UNKNOWN-INTENT
 UNKNOWN-PROC UNKNOWN UNKNOWN DIMENSION IN_NAMELIST) (REAL 4 0 0 REAL ())
 0 0 () (1 EXPLICIT (CONSTANT (INTEGER 4 0 0 INTEGER ()) 0 '1') (
 CONSTANT (INTEGER 4 0 0 INTEGER ()) 0 '27')) 0 () () () 0 0)
-12 'dilefc' 'noahmp_veg_parameters' 'dilefc' 1 ((VARIABLE UNKNOWN-INTENT
+13 'dilefc' 'noahmp_veg_parameters' 'dilefc' 1 ((VARIABLE UNKNOWN-INTENT
 UNKNOWN-PROC UNKNOWN UNKNOWN DIMENSION IN_NAMELIST) (REAL 4 0 0 REAL ())
 0 0 () (1 EXPLICIT (CONSTANT (INTEGER 4 0 0 INTEGER ()) 0 '1') (
 CONSTANT (INTEGER 4 0 0 INTEGER ()) 0 '27')) 0 () () () 0 0)
-13 'dilefw' 'noahmp_veg_parameters' 'dilefw' 1 ((VARIABLE UNKNOWN-INTENT
+14 'dilefw' 'noahmp_veg_parameters' 'dilefw' 1 ((VARIABLE UNKNOWN-INTENT
 UNKNOWN-PROC UNKNOWN UNKNOWN DIMENSION IN_NAMELIST) (REAL 4 0 0 REAL ())
 0 0 () (1 EXPLICIT (CONSTANT (INTEGER 4 0 0 INTEGER ()) 0 '1') (
 CONSTANT (INTEGER 4 0 0 INTEGER ()) 0 '27')) 0 () () () 0 0)
-14 'dleaf' 'noahmp_veg_parameters' 'dleaf' 1 ((VARIABLE UNKNOWN-INTENT
+15 'dleaf' 'noahmp_veg_parameters' 'dleaf' 1 ((VARIABLE UNKNOWN-INTENT
 UNKNOWN-PROC UNKNOWN UNKNOWN DIMENSION IN_NAMELIST) (REAL 4 0 0 REAL ())
 0 0 () (1 EXPLICIT (CONSTANT (INTEGER 4 0 0 INTEGER ()) 0 '1') (
 CONSTANT (INTEGER 4 0 0 INTEGER ()) 0 '27')) 0 () () () 0 0)
-15 'eblforest' 'noahmp_veg_parameters' 'eblforest' 1 ((VARIABLE
+16 'eblforest' 'noahmp_veg_parameters' 'eblforest' 1 ((VARIABLE
 UNKNOWN-INTENT UNKNOWN-PROC UNKNOWN UNKNOWN IN_NAMELIST) (INTEGER 4 0 0
 INTEGER ()) 0 0 () () 0 () () () 0 0)
-16 'eps' 'noahmp_veg_parameters' 'eps' 1 ((VARIABLE UNKNOWN-INTENT
+17 'eps' 'noahmp_veg_parameters' 'eps' 1 ((VARIABLE UNKNOWN-INTENT
 UNKNOWN-PROC UNKNOWN UNKNOWN DIMENSION IN_NAMELIST) (REAL 4 0 0 REAL ())
 0 0 () (2 EXPLICIT (CONSTANT (INTEGER 4 0 0 INTEGER ()) 0 '1') (
 CONSTANT (INTEGER 4 0 0 INTEGER ()) 0 '27') (CONSTANT (INTEGER 4 0 0
 INTEGER ()) 0 '1') (CONSTANT (INTEGER 4 0 0 INTEGER ()) 0 '5')) 0 () ()
 () 0 0)
-17 'folnmx' 'noahmp_veg_parameters' 'folnmx' 1 ((VARIABLE UNKNOWN-INTENT
+18 'filoss_table' 'noahmp_veg_parameters' 'filoss_table' 1 ((VARIABLE
+UNKNOWN-INTENT UNKNOWN-PROC UNKNOWN UNKNOWN) (REAL 4 0 0 REAL ()) 0 0 ()
+() 0 () () () 0 0)
+19 'firtfac_table' 'noahmp_veg_parameters' 'firtfac_table' 1 ((VARIABLE
+UNKNOWN-INTENT UNKNOWN-PROC UNKNOWN UNKNOWN) (REAL 4 0 0 REAL ()) 0 0 ()
+() 0 () () () 0 0)
+20 'folnmx' 'noahmp_veg_parameters' 'folnmx' 1 ((VARIABLE UNKNOWN-INTENT
 UNKNOWN-PROC UNKNOWN UNKNOWN DIMENSION IN_NAMELIST) (REAL 4 0 0 REAL ())
 0 0 () (1 EXPLICIT (CONSTANT (INTEGER 4 0 0 INTEGER ()) 0 '1') (
 CONSTANT (INTEGER 4 0 0 INTEGER ()) 0 '27')) 0 () () () 0 0)
-18 'fragr' 'noahmp_veg_parameters' 'fragr' 1 ((VARIABLE UNKNOWN-INTENT
+21 'fragr' 'noahmp_veg_parameters' 'fragr' 1 ((VARIABLE UNKNOWN-INTENT
 UNKNOWN-PROC UNKNOWN UNKNOWN DIMENSION IN_NAMELIST) (REAL 4 0 0 REAL ())
 0 0 () (1 EXPLICIT (CONSTANT (INTEGER 4 0 0 INTEGER ()) 0 '1') (
 CONSTANT (INTEGER 4 0 0 INTEGER ()) 0 '27')) 0 () () () 0 0)
-19 'hvb' 'noahmp_veg_parameters' 'hvb' 1 ((VARIABLE UNKNOWN-INTENT
+22 'hsday_table' 'noahmp_veg_parameters' 'hsday_table' 1 ((VARIABLE
+UNKNOWN-INTENT UNKNOWN-PROC UNKNOWN UNKNOWN DIMENSION) (INTEGER 4 0 0
+INTEGER ()) 0 0 () (1 EXPLICIT (CONSTANT (INTEGER 4 0 0 INTEGER ()) 0 '1')
+(CONSTANT (INTEGER 4 0 0 INTEGER ()) 0 '5')) 0 () () () 0 0)
+23 'hvb' 'noahmp_veg_parameters' 'hvb' 1 ((VARIABLE UNKNOWN-INTENT
 UNKNOWN-PROC UNKNOWN UNKNOWN DIMENSION IN_NAMELIST) (REAL 4 0 0 REAL ())
 0 0 () (1 EXPLICIT (CONSTANT (INTEGER 4 0 0 INTEGER ()) 0 '1') (
 CONSTANT (INTEGER 4 0 0 INTEGER ()) 0 '27')) 0 () () () 0 0)
-20 'hvt' 'noahmp_veg_parameters' 'hvt' 1 ((VARIABLE UNKNOWN-INTENT
+24 'hvt' 'noahmp_veg_parameters' 'hvt' 1 ((VARIABLE UNKNOWN-INTENT
 UNKNOWN-PROC UNKNOWN UNKNOWN DIMENSION IN_NAMELIST) (REAL 4 0 0 REAL ())
 0 0 () (1 EXPLICIT (CONSTANT (INTEGER 4 0 0 INTEGER ()) 0 '1') (
 CONSTANT (INTEGER 4 0 0 INTEGER ()) 0 '27')) 0 () () () 0 0)
-21 'ik' 'noahmp_veg_parameters' 'ik' 1 ((VARIABLE UNKNOWN-INTENT
+25 'ik' 'noahmp_veg_parameters' 'ik' 1 ((VARIABLE UNKNOWN-INTENT
 UNKNOWN-PROC UNKNOWN UNKNOWN) (INTEGER 4 0 0 INTEGER ()) 0 0 () () 0 ()
 () () 0 0)
-22 'im' 'noahmp_veg_parameters' 'im' 1 ((VARIABLE UNKNOWN-INTENT
+26 'im' 'noahmp_veg_parameters' 'im' 1 ((VARIABLE UNKNOWN-INTENT
 UNKNOWN-PROC UNKNOWN UNKNOWN) (INTEGER 4 0 0 INTEGER ()) 0 0 () () 0 ()
 () () 0 0)
-23 'isbarren' 'noahmp_veg_parameters' 'isbarren' 1 ((VARIABLE
+27 'ir_rain_table' 'noahmp_veg_parameters' 'ir_rain_table' 1 ((VARIABLE
+UNKNOWN-INTENT UNKNOWN-PROC UNKNOWN UNKNOWN) (REAL 4 0 0 REAL ()) 0 0 ()
+() 0 () () () 0 0)
+28 'irr_frac_table' 'noahmp_veg_parameters' 'irr_frac_table' 1 ((
+VARIABLE UNKNOWN-INTENT UNKNOWN-PROC UNKNOWN UNKNOWN) (REAL 4 0 0 REAL ())
+0 0 () () 0 () () () 0 0)
+29 'irr_har_table' 'noahmp_veg_parameters' 'irr_har_table' 1 ((VARIABLE
+UNKNOWN-INTENT UNKNOWN-PROC UNKNOWN UNKNOWN) (INTEGER 4 0 0 INTEGER ())
+0 0 () () 0 () () () 0 0)
+30 'irr_lai_table' 'noahmp_veg_parameters' 'irr_lai_table' 1 ((VARIABLE
+UNKNOWN-INTENT UNKNOWN-PROC UNKNOWN UNKNOWN) (REAL 4 0 0 REAL ()) 0 0 ()
+() 0 () () () 0 0)
+31 'irr_mad_table' 'noahmp_veg_parameters' 'irr_mad_table' 1 ((VARIABLE
+UNKNOWN-INTENT UNKNOWN-PROC UNKNOWN UNKNOWN) (REAL 4 0 0 REAL ()) 0 0 ()
+() 0 () () () 0 0)
+32 'irri_table' 'noahmp_veg_parameters' 'irri_table' 1 ((VARIABLE
+UNKNOWN-INTENT UNKNOWN-PROC UNKNOWN UNKNOWN DIMENSION) (REAL 4 0 0 REAL
+()) 0 0 () (1 EXPLICIT (CONSTANT (INTEGER 4 0 0 INTEGER ()) 0 '1') (
+CONSTANT (INTEGER 4 0 0 INTEGER ()) 0 '5')) 0 () () () 0 0)
+33 'isbarren' 'noahmp_veg_parameters' 'isbarren' 1 ((VARIABLE
 UNKNOWN-INTENT UNKNOWN-PROC UNKNOWN UNKNOWN IN_NAMELIST) (INTEGER 4 0 0
 INTEGER ()) 0 0 () () 0 () () () 0 0)
-24 'issnow' 'noahmp_veg_parameters' 'issnow' 1 ((VARIABLE UNKNOWN-INTENT
+34 'issnow' 'noahmp_veg_parameters' 'issnow' 1 ((VARIABLE UNKNOWN-INTENT
 UNKNOWN-PROC UNKNOWN UNKNOWN IN_NAMELIST) (INTEGER 4 0 0 INTEGER ()) 0 0
 () () 0 () () () 0 0)
-25 'iswater' 'noahmp_veg_parameters' 'iswater' 1 ((VARIABLE
+35 'iswater' 'noahmp_veg_parameters' 'iswater' 1 ((VARIABLE
 UNKNOWN-INTENT UNKNOWN-PROC UNKNOWN UNKNOWN IN_NAMELIST) (INTEGER 4 0 0
 INTEGER ()) 0 0 () () 0 () () () 0 0)
-26 'kc25' 'noahmp_veg_parameters' 'kc25' 1 ((VARIABLE UNKNOWN-INTENT
+36 'kc25' 'noahmp_veg_parameters' 'kc25' 1 ((VARIABLE UNKNOWN-INTENT
 UNKNOWN-PROC UNKNOWN UNKNOWN DIMENSION IN_NAMELIST) (REAL 4 0 0 REAL ())
 0 0 () (1 EXPLICIT (CONSTANT (INTEGER 4 0 0 INTEGER ()) 0 '1') (
 CONSTANT (INTEGER 4 0 0 INTEGER ()) 0 '27')) 0 () () () 0 0)
-27 'ko25' 'noahmp_veg_parameters' 'ko25' 1 ((VARIABLE UNKNOWN-INTENT
+37 'ko25' 'noahmp_veg_parameters' 'ko25' 1 ((VARIABLE UNKNOWN-INTENT
 UNKNOWN-PROC UNKNOWN UNKNOWN DIMENSION IN_NAMELIST) (REAL 4 0 0 REAL ())
 0 0 () (1 EXPLICIT (CONSTANT (INTEGER 4 0 0 INTEGER ()) 0 '1') (
 CONSTANT (INTEGER 4 0 0 INTEGER ()) 0 '27')) 0 () () () 0 0)
-28 'laim' 'noahmp_veg_parameters' 'laim' 1 ((VARIABLE UNKNOWN-INTENT
+38 'laim' 'noahmp_veg_parameters' 'laim' 1 ((VARIABLE UNKNOWN-INTENT
 UNKNOWN-PROC UNKNOWN UNKNOWN DIMENSION IN_NAMELIST) (REAL 4 0 0 REAL ())
 0 0 () (2 EXPLICIT (CONSTANT (INTEGER 4 0 0 INTEGER ()) 0 '1') (
 CONSTANT (INTEGER 4 0 0 INTEGER ()) 0 '27') (CONSTANT (INTEGER 4 0 0
 INTEGER ()) 0 '1') (CONSTANT (INTEGER 4 0 0 INTEGER ()) 0 '12')) 0 () ()
 () 0 0)
-29 'ltovrc' 'noahmp_veg_parameters' 'ltovrc' 1 ((VARIABLE UNKNOWN-INTENT
+39 'ltovrc' 'noahmp_veg_parameters' 'ltovrc' 1 ((VARIABLE UNKNOWN-INTENT
 UNKNOWN-PROC UNKNOWN UNKNOWN DIMENSION IN_NAMELIST) (REAL 4 0 0 REAL ())
 0 0 () (1 EXPLICIT (CONSTANT (INTEGER 4 0 0 INTEGER ()) 0 '1') (
 CONSTANT (INTEGER 4 0 0 INTEGER ()) 0 '27')) 0 () () () 0 0)
-30 'max_veg_params' 'noahmp_veg_parameters' 'max_veg_params' 1 ((
+40 'max_veg_params' 'noahmp_veg_parameters' 'max_veg_params' 1 ((
 PARAMETER UNKNOWN-INTENT UNKNOWN-PROC UNKNOWN IMPLICIT-SAVE) (INTEGER 4
 0 0 INTEGER ()) 0 0 () (CONSTANT (INTEGER 4 0 0 INTEGER ()) 0 '33') () 0
 () () () 0 0)
-31 'mband' 'noahmp_veg_parameters' 'mband' 1 ((PARAMETER UNKNOWN-INTENT
+41 'mband' 'noahmp_veg_parameters' 'mband' 1 ((PARAMETER UNKNOWN-INTENT
 UNKNOWN-PROC UNKNOWN IMPLICIT-SAVE) (INTEGER 4 0 0 INTEGER ()) 0 0 () (
 CONSTANT (INTEGER 4 0 0 INTEGER ()) 0 '2') () 0 () () () 0 0)
-32 'mp' 'noahmp_veg_parameters' 'mp' 1 ((VARIABLE UNKNOWN-INTENT
+42 'micir_rate_table' 'noahmp_veg_parameters' 'micir_rate_table' 1 ((
+VARIABLE UNKNOWN-INTENT UNKNOWN-PROC UNKNOWN UNKNOWN) (REAL 4 0 0 REAL ())
+0 0 () () 0 () () () 0 0)
+43 'mp' 'noahmp_veg_parameters' 'mp' 1 ((VARIABLE UNKNOWN-INTENT
 UNKNOWN-PROC UNKNOWN UNKNOWN DIMENSION IN_NAMELIST) (REAL 4 0 0 REAL ())
 0 0 () (1 EXPLICIT (CONSTANT (INTEGER 4 0 0 INTEGER ()) 0 '1') (
 CONSTANT (INTEGER 4 0 0 INTEGER ()) 0 '27')) 0 () () () 0 0)
-33 'mrp' 'noahmp_veg_parameters' 'mrp' 1 ((VARIABLE UNKNOWN-INTENT
+44 'mrp' 'noahmp_veg_parameters' 'mrp' 1 ((VARIABLE UNKNOWN-INTENT
 UNKNOWN-PROC UNKNOWN UNKNOWN DIMENSION IN_NAMELIST) (REAL 4 0 0 REAL ())
 0 0 () (1 EXPLICIT (CONSTANT (INTEGER 4 0 0 INTEGER ()) 0 '1') (
 CONSTANT (INTEGER 4 0 0 INTEGER ()) 0 '27')) 0 () () () 0 0)
-34 'mvt' 'noahmp_veg_parameters' 'mvt' 1 ((PARAMETER UNKNOWN-INTENT
+45 'mvt' 'noahmp_veg_parameters' 'mvt' 1 ((PARAMETER UNKNOWN-INTENT
 UNKNOWN-PROC UNKNOWN IMPLICIT-SAVE) (INTEGER 4 0 0 INTEGER ()) 0 0 () (
 CONSTANT (INTEGER 4 0 0 INTEGER ()) 0 '27') () 0 () () () 0 0)
-35 'noahmp_veg_parameters' 'noahmp_veg_parameters' 'noahmp_veg_parameters'
+46 'noahmp_veg_parameters' 'noahmp_veg_parameters' 'noahmp_veg_parameters'
 1 ((MODULE UNKNOWN-INTENT UNKNOWN-PROC UNKNOWN UNKNOWN) (UNKNOWN 0 0 0
 UNKNOWN ()) 0 0 () () 0 () () () 0 0)
-36 'qe25' 'noahmp_veg_parameters' 'qe25' 1 ((VARIABLE UNKNOWN-INTENT
+47 'plantpop_table' 'noahmp_veg_parameters' 'plantpop_table' 1 ((
+VARIABLE UNKNOWN-INTENT UNKNOWN-PROC UNKNOWN UNKNOWN DIMENSION) (REAL 4
+0 0 REAL ()) 0 0 () (1 EXPLICIT (CONSTANT (INTEGER 4 0 0 INTEGER ()) 0 '1')
+(CONSTANT (INTEGER 4 0 0 INTEGER ()) 0 '5')) 0 () () () 0 0)
+48 'pltday_table' 'noahmp_veg_parameters' 'pltday_table' 1 ((VARIABLE
+UNKNOWN-INTENT UNKNOWN-PROC UNKNOWN UNKNOWN DIMENSION) (INTEGER 4 0 0
+INTEGER ()) 0 0 () (1 EXPLICIT (CONSTANT (INTEGER 4 0 0 INTEGER ()) 0 '1')
+(CONSTANT (INTEGER 4 0 0 INTEGER ()) 0 '5')) 0 () () () 0 0)
+49 'qe25' 'noahmp_veg_parameters' 'qe25' 1 ((VARIABLE UNKNOWN-INTENT
 UNKNOWN-PROC UNKNOWN UNKNOWN DIMENSION IN_NAMELIST) (REAL 4 0 0 REAL ())
 0 0 () (1 EXPLICIT (CONSTANT (INTEGER 4 0 0 INTEGER ()) 0 '1') (
 CONSTANT (INTEGER 4 0 0 INTEGER ()) 0 '27')) 0 () () () 0 0)
-37 'rc' 'noahmp_veg_parameters' 'rc' 1 ((VARIABLE UNKNOWN-INTENT
+50 'rc' 'noahmp_veg_parameters' 'rc' 1 ((VARIABLE UNKNOWN-INTENT
 UNKNOWN-PROC UNKNOWN UNKNOWN DIMENSION IN_NAMELIST) (REAL 4 0 0 REAL ())
 0 0 () (1 EXPLICIT (CONSTANT (INTEGER 4 0 0 INTEGER ()) 0 '1') (
 CONSTANT (INTEGER 4 0 0 INTEGER ()) 0 '27')) 0 () () () 0 0)
-38 'read_mp_veg_parameters' 'noahmp_veg_parameters'
+51 'read_mp_crop_parameters' 'noahmp_veg_parameters'
+'read_mp_crop_parameters' 1 ((PROCEDURE UNKNOWN-INTENT MODULE-PROC DECL
+UNKNOWN SUBROUTINE) (UNKNOWN 0 0 0 UNKNOWN ()) 0 0 () () 0 () () () 0 0)
+52 'read_mp_irrigation_parameters' 'noahmp_veg_parameters'
+'read_mp_irrigation_parameters' 1 ((PROCEDURE UNKNOWN-INTENT MODULE-PROC
+DECL UNKNOWN SUBROUTINE) (UNKNOWN 0 0 0 UNKNOWN ()) 0 0 () () 0 () () ()
+0 0)
+53 'read_mp_veg_parameters' 'noahmp_veg_parameters'
 'read_mp_veg_parameters' 1 ((PROCEDURE UNKNOWN-INTENT MODULE-PROC DECL
-UNKNOWN SUBROUTINE) (UNKNOWN 0 0 0 UNKNOWN ()) 39 0 (40) () 0 () () () 0
+UNKNOWN SUBROUTINE) (UNKNOWN 0 0 0 UNKNOWN ()) 54 0 (55) () 0 () () () 0
 0)
-41 'rhol' 'noahmp_veg_parameters' 'rhol' 1 ((VARIABLE UNKNOWN-INTENT
+56 'rhol' 'noahmp_veg_parameters' 'rhol' 1 ((VARIABLE UNKNOWN-INTENT
 UNKNOWN-PROC UNKNOWN UNKNOWN DIMENSION IN_NAMELIST) (REAL 4 0 0 REAL ())
 0 0 () (2 EXPLICIT (CONSTANT (INTEGER 4 0 0 INTEGER ()) 0 '1') (
 CONSTANT (INTEGER 4 0 0 INTEGER ()) 0 '27') (CONSTANT (INTEGER 4 0 0
 INTEGER ()) 0 '1') (CONSTANT (INTEGER 4 0 0 INTEGER ()) 0 '2')) 0 () ()
 () 0 0)
-42 'rhos' 'noahmp_veg_parameters' 'rhos' 1 ((VARIABLE UNKNOWN-INTENT
+57 'rhos' 'noahmp_veg_parameters' 'rhos' 1 ((VARIABLE UNKNOWN-INTENT
 UNKNOWN-PROC UNKNOWN UNKNOWN DIMENSION IN_NAMELIST) (REAL 4 0 0 REAL ())
 0 0 () (2 EXPLICIT (CONSTANT (INTEGER 4 0 0 INTEGER ()) 0 '1') (
 CONSTANT (INTEGER 4 0 0 INTEGER ()) 0 '27') (CONSTANT (INTEGER 4 0 0
 INTEGER ()) 0 '1') (CONSTANT (INTEGER 4 0 0 INTEGER ()) 0 '2')) 0 () ()
 () 0 0)
-43 'rmf25' 'noahmp_veg_parameters' 'rmf25' 1 ((VARIABLE UNKNOWN-INTENT
+58 'rmf25' 'noahmp_veg_parameters' 'rmf25' 1 ((VARIABLE UNKNOWN-INTENT
 UNKNOWN-PROC UNKNOWN UNKNOWN DIMENSION IN_NAMELIST) (REAL 4 0 0 REAL ())
 0 0 () (1 EXPLICIT (CONSTANT (INTEGER 4 0 0 INTEGER ()) 0 '1') (
 CONSTANT (INTEGER 4 0 0 INTEGER ()) 0 '27')) 0 () () () 0 0)
-44 'rmr25' 'noahmp_veg_parameters' 'rmr25' 1 ((VARIABLE UNKNOWN-INTENT
+59 'rmr25' 'noahmp_veg_parameters' 'rmr25' 1 ((VARIABLE UNKNOWN-INTENT
 UNKNOWN-PROC UNKNOWN UNKNOWN DIMENSION IN_NAMELIST) (REAL 4 0 0 REAL ())
 0 0 () (1 EXPLICIT (CONSTANT (INTEGER 4 0 0 INTEGER ()) 0 '1') (
 CONSTANT (INTEGER 4 0 0 INTEGER ()) 0 '27')) 0 () () () 0 0)
-45 'rms25' 'noahmp_veg_parameters' 'rms25' 1 ((VARIABLE UNKNOWN-INTENT
+60 'rms25' 'noahmp_veg_parameters' 'rms25' 1 ((VARIABLE UNKNOWN-INTENT
 UNKNOWN-PROC UNKNOWN UNKNOWN DIMENSION IN_NAMELIST) (REAL 4 0 0 REAL ())
 0 0 () (1 EXPLICIT (CONSTANT (INTEGER 4 0 0 INTEGER ()) 0 '1') (
 CONSTANT (INTEGER 4 0 0 INTEGER ()) 0 '27')) 0 () () () 0 0)
-46 'saim' 'noahmp_veg_parameters' 'saim' 1 ((VARIABLE UNKNOWN-INTENT
+61 'saim' 'noahmp_veg_parameters' 'saim' 1 ((VARIABLE UNKNOWN-INTENT
 UNKNOWN-PROC UNKNOWN UNKNOWN DIMENSION IN_NAMELIST) (REAL 4 0 0 REAL ())
 0 0 () (2 EXPLICIT (CONSTANT (INTEGER 4 0 0 INTEGER ()) 0 '1') (
 CONSTANT (INTEGER 4 0 0 INTEGER ()) 0 '27') (CONSTANT (INTEGER 4 0 0
 INTEGER ()) 0 '1') (CONSTANT (INTEGER 4 0 0 INTEGER ()) 0 '12')) 0 () ()
 () 0 0)
-47 'sla' 'noahmp_veg_parameters' 'sla' 1 ((VARIABLE UNKNOWN-INTENT
+62 'sla' 'noahmp_veg_parameters' 'sla' 1 ((VARIABLE UNKNOWN-INTENT
 UNKNOWN-PROC UNKNOWN UNKNOWN DIMENSION IN_NAMELIST) (REAL 4 0 0 REAL ())
 0 0 () (1 EXPLICIT (CONSTANT (INTEGER 4 0 0 INTEGER ()) 0 '1') (
 CONSTANT (INTEGER 4 0 0 INTEGER ()) 0 '27')) 0 () () () 0 0)
-48 'slarea' 'noahmp_veg_parameters' 'slarea' 1 ((VARIABLE UNKNOWN-INTENT
+63 'slarea' 'noahmp_veg_parameters' 'slarea' 1 ((VARIABLE UNKNOWN-INTENT
 UNKNOWN-PROC UNKNOWN UNKNOWN DIMENSION IN_NAMELIST) (REAL 4 0 0 REAL ())
 0 0 () (1 EXPLICIT (CONSTANT (INTEGER 4 0 0 INTEGER ()) 0 '1') (
 CONSTANT (INTEGER 4 0 0 INTEGER ()) 0 '27')) 0 () () () 0 0)
-49 'taul' 'noahmp_veg_parameters' 'taul' 1 ((VARIABLE UNKNOWN-INTENT
+64 'sprir_rate_table' 'noahmp_veg_parameters' 'sprir_rate_table' 1 ((
+VARIABLE UNKNOWN-INTENT UNKNOWN-PROC UNKNOWN UNKNOWN) (REAL 4 0 0 REAL ())
+0 0 () () 0 () () () 0 0)
+65 'taul' 'noahmp_veg_parameters' 'taul' 1 ((VARIABLE UNKNOWN-INTENT
 UNKNOWN-PROC UNKNOWN UNKNOWN DIMENSION IN_NAMELIST) (REAL 4 0 0 REAL ())
 0 0 () (2 EXPLICIT (CONSTANT (INTEGER 4 0 0 INTEGER ()) 0 '1') (
 CONSTANT (INTEGER 4 0 0 INTEGER ()) 0 '27') (CONSTANT (INTEGER 4 0 0
 INTEGER ()) 0 '1') (CONSTANT (INTEGER 4 0 0 INTEGER ()) 0 '2')) 0 () ()
 () 0 0)
-50 'taus' 'noahmp_veg_parameters' 'taus' 1 ((VARIABLE UNKNOWN-INTENT
+66 'taus' 'noahmp_veg_parameters' 'taus' 1 ((VARIABLE UNKNOWN-INTENT
 UNKNOWN-PROC UNKNOWN UNKNOWN DIMENSION IN_NAMELIST) (REAL 4 0 0 REAL ())
 0 0 () (2 EXPLICIT (CONSTANT (INTEGER 4 0 0 INTEGER ()) 0 '1') (
 CONSTANT (INTEGER 4 0 0 INTEGER ()) 0 '27') (CONSTANT (INTEGER 4 0 0
 INTEGER ()) 0 '1') (CONSTANT (INTEGER 4 0 0 INTEGER ()) 0 '2')) 0 () ()
 () 0 0)
-51 'tdlef' 'noahmp_veg_parameters' 'tdlef' 1 ((VARIABLE UNKNOWN-INTENT
+67 'tdlef' 'noahmp_veg_parameters' 'tdlef' 1 ((VARIABLE UNKNOWN-INTENT
 UNKNOWN-PROC UNKNOWN UNKNOWN DIMENSION IN_NAMELIST) (REAL 4 0 0 REAL ())
 0 0 () (1 EXPLICIT (CONSTANT (INTEGER 4 0 0 INTEGER ()) 0 '1') (
 CONSTANT (INTEGER 4 0 0 INTEGER ()) 0 '27')) 0 () () () 0 0)
-52 'tmin' 'noahmp_veg_parameters' 'tmin' 1 ((VARIABLE UNKNOWN-INTENT
+68 'tmin' 'noahmp_veg_parameters' 'tmin' 1 ((VARIABLE UNKNOWN-INTENT
 UNKNOWN-PROC UNKNOWN UNKNOWN DIMENSION IN_NAMELIST) (REAL 4 0 0 REAL ())
 0 0 () (1 EXPLICIT (CONSTANT (INTEGER 4 0 0 INTEGER ()) 0 '1') (
 CONSTANT (INTEGER 4 0 0 INTEGER ()) 0 '27')) 0 () () () 0 0)
-53 'tmp10' 'noahmp_veg_parameters' 'tmp10' 1 ((VARIABLE UNKNOWN-INTENT
+69 'tmp10' 'noahmp_veg_parameters' 'tmp10' 1 ((VARIABLE UNKNOWN-INTENT
 UNKNOWN-PROC UNKNOWN UNKNOWN DIMENSION) (REAL 4 0 0 REAL ()) 0 0 () (1
 EXPLICIT (CONSTANT (INTEGER 4 0 0 INTEGER ()) 0 '1') (CONSTANT (INTEGER
 4 0 0 INTEGER ()) 0 '54')) 0 () () () 0 0)
-54 'tmp11' 'noahmp_veg_parameters' 'tmp11' 1 ((VARIABLE UNKNOWN-INTENT
+70 'tmp11' 'noahmp_veg_parameters' 'tmp11' 1 ((VARIABLE UNKNOWN-INTENT
 UNKNOWN-PROC UNKNOWN UNKNOWN DIMENSION) (REAL 4 0 0 REAL ()) 0 0 () (1
 EXPLICIT (CONSTANT (INTEGER 4 0 0 INTEGER ()) 0 '1') (CONSTANT (INTEGER
 4 0 0 INTEGER ()) 0 '54')) 0 () () () 0 0)
-55 'tmp12' 'noahmp_veg_parameters' 'tmp12' 1 ((VARIABLE UNKNOWN-INTENT
+71 'tmp12' 'noahmp_veg_parameters' 'tmp12' 1 ((VARIABLE UNKNOWN-INTENT
 UNKNOWN-PROC UNKNOWN UNKNOWN DIMENSION) (REAL 4 0 0 REAL ()) 0 0 () (1
 EXPLICIT (CONSTANT (INTEGER 4 0 0 INTEGER ()) 0 '1') (CONSTANT (INTEGER
 4 0 0 INTEGER ()) 0 '54')) 0 () () () 0 0)
-56 'tmp13' 'noahmp_veg_parameters' 'tmp13' 1 ((VARIABLE UNKNOWN-INTENT
+72 'tmp13' 'noahmp_veg_parameters' 'tmp13' 1 ((VARIABLE UNKNOWN-INTENT
 UNKNOWN-PROC UNKNOWN UNKNOWN DIMENSION) (REAL 4 0 0 REAL ()) 0 0 () (1
 EXPLICIT (CONSTANT (INTEGER 4 0 0 INTEGER ()) 0 '1') (CONSTANT (INTEGER
 4 0 0 INTEGER ()) 0 '54')) 0 () () () 0 0)
-57 'tmp14' 'noahmp_veg_parameters' 'tmp14' 1 ((VARIABLE UNKNOWN-INTENT
+73 'tmp14' 'noahmp_veg_parameters' 'tmp14' 1 ((VARIABLE UNKNOWN-INTENT
 UNKNOWN-PROC UNKNOWN UNKNOWN DIMENSION) (REAL 4 0 0 REAL ()) 0 0 () (1
 EXPLICIT (CONSTANT (INTEGER 4 0 0 INTEGER ()) 0 '1') (CONSTANT (INTEGER
 4 0 0 INTEGER ()) 0 '324')) 0 () () () 0 0)
-58 'tmp15' 'noahmp_veg_parameters' 'tmp15' 1 ((VARIABLE UNKNOWN-INTENT
+74 'tmp15' 'noahmp_veg_parameters' 'tmp15' 1 ((VARIABLE UNKNOWN-INTENT
 UNKNOWN-PROC UNKNOWN UNKNOWN DIMENSION) (REAL 4 0 0 REAL ()) 0 0 () (1
 EXPLICIT (CONSTANT (INTEGER 4 0 0 INTEGER ()) 0 '1') (CONSTANT (INTEGER
 4 0 0 INTEGER ()) 0 '324')) 0 () () () 0 0)
-59 'tmp16' 'noahmp_veg_parameters' 'tmp16' 1 ((VARIABLE UNKNOWN-INTENT
+75 'tmp16' 'noahmp_veg_parameters' 'tmp16' 1 ((VARIABLE UNKNOWN-INTENT
 UNKNOWN-PROC UNKNOWN UNKNOWN DIMENSION) (REAL 4 0 0 REAL ()) 0 0 () (1
 EXPLICIT (CONSTANT (INTEGER 4 0 0 INTEGER ()) 0 '1') (CONSTANT (INTEGER
 4 0 0 INTEGER ()) 0 '135')) 0 () () () 0 0)
-60 'vcmx25' 'noahmp_veg_parameters' 'vcmx25' 1 ((VARIABLE UNKNOWN-INTENT
+76 'vcmx25' 'noahmp_veg_parameters' 'vcmx25' 1 ((VARIABLE UNKNOWN-INTENT
 UNKNOWN-PROC UNKNOWN UNKNOWN DIMENSION IN_NAMELIST) (REAL 4 0 0 REAL ())
 0 0 () (1 EXPLICIT (CONSTANT (INTEGER 4 0 0 INTEGER ()) 0 '1') (
 CONSTANT (INTEGER 4 0 0 INTEGER ()) 0 '27')) 0 () () () 0 0)
-61 'wdpool' 'noahmp_veg_parameters' 'wdpool' 1 ((VARIABLE UNKNOWN-INTENT
+77 'wdpool' 'noahmp_veg_parameters' 'wdpool' 1 ((VARIABLE UNKNOWN-INTENT
 UNKNOWN-PROC UNKNOWN UNKNOWN DIMENSION IN_NAMELIST) (REAL 4 0 0 REAL ())
 0 0 () (1 EXPLICIT (CONSTANT (INTEGER 4 0 0 INTEGER ()) 0 '1') (
 CONSTANT (INTEGER 4 0 0 INTEGER ()) 0 '27')) 0 () () () 0 0)
-62 'wrrat' 'noahmp_veg_parameters' 'wrrat' 1 ((VARIABLE UNKNOWN-INTENT
+78 'wrrat' 'noahmp_veg_parameters' 'wrrat' 1 ((VARIABLE UNKNOWN-INTENT
 UNKNOWN-PROC UNKNOWN UNKNOWN DIMENSION IN_NAMELIST) (REAL 4 0 0 REAL ())
 0 0 () (1 EXPLICIT (CONSTANT (INTEGER 4 0 0 INTEGER ()) 0 '1') (
 CONSTANT (INTEGER 4 0 0 INTEGER ()) 0 '27')) 0 () () () 0 0)
-63 'xl' 'noahmp_veg_parameters' 'xl' 1 ((VARIABLE UNKNOWN-INTENT
+79 'xl' 'noahmp_veg_parameters' 'xl' 1 ((VARIABLE UNKNOWN-INTENT
 UNKNOWN-PROC UNKNOWN UNKNOWN DIMENSION IN_NAMELIST) (REAL 4 0 0 REAL ())
 0 0 () (1 EXPLICIT (CONSTANT (INTEGER 4 0 0 INTEGER ()) 0 '1') (
 CONSTANT (INTEGER 4 0 0 INTEGER ()) 0 '27')) 0 () () () 0 0)
-64 'z0mvt' 'noahmp_veg_parameters' 'z0mvt' 1 ((VARIABLE UNKNOWN-INTENT
+80 'z0mvt' 'noahmp_veg_parameters' 'z0mvt' 1 ((VARIABLE UNKNOWN-INTENT
 UNKNOWN-PROC UNKNOWN UNKNOWN DIMENSION IN_NAMELIST) (REAL 4 0 0 REAL ())
 0 0 () (1 EXPLICIT (CONSTANT (INTEGER 4 0 0 INTEGER ()) 0 '1') (
 CONSTANT (INTEGER 4 0 0 INTEGER ()) 0 '27')) 0 () () () 0 0)
-40 'dataset_identifier' '' 'dataset_identifier' 39 ((VARIABLE IN
+55 'dataset_identifier' '' 'dataset_identifier' 54 ((VARIABLE IN
 UNKNOWN-PROC UNKNOWN UNKNOWN DUMMY) (CHARACTER 1 0 0 CHARACTER (())) 0 0
 () () 0 () () () 0 0)
 )
 
 ('akc' 0 2 'ako' 0 3 'aqe' 0 4 'arm' 0 5 'avcmx' 0 6 'bp' 0 7 'c3psn' 0
-8 'ch2op' 0 9 'cwpvt' 0 10 'den' 0 11 'dilefc' 0 12 'dilefw' 0 13 'dleaf'
-0 14 'eblforest' 0 15 'eps' 0 16 'folnmx' 0 17 'fragr' 0 18 'hvb' 0 19
-'hvt' 0 20 'ik' 0 21 'im' 0 22 'isbarren' 0 23 'issnow' 0 24 'iswater' 0
-25 'kc25' 0 26 'ko25' 0 27 'laim' 0 28 'ltovrc' 0 29 'max_veg_params' 0
-30 'mband' 0 31 'mp' 0 32 'mrp' 0 33 'mvt' 0 34 'noahmp_veg_parameters'
-0 35 'qe25' 0 36 'rc' 0 37 'read_mp_veg_parameters' 0 38 'rhol' 0 41
-'rhos' 0 42 'rmf25' 0 43 'rmr25' 0 44 'rms25' 0 45 'saim' 0 46 'sla' 0
-47 'slarea' 0 48 'taul' 0 49 'taus' 0 50 'tdlef' 0 51 'tmin' 0 52 'tmp10'
-0 53 'tmp11' 0 54 'tmp12' 0 55 'tmp13' 0 56 'tmp14' 0 57 'tmp15' 0 58
-'tmp16' 0 59 'vcmx25' 0 60 'wdpool' 0 61 'wrrat' 0 62 'xl' 0 63 'z0mvt'
-0 64)
+8 'ch2op' 0 9 'cwpvt' 0 10 'default_crop_table' 0 11 'den' 0 12 'dilefc'
+0 13 'dilefw' 0 14 'dleaf' 0 15 'eblforest' 0 16 'eps' 0 17 'filoss_table'
+0 18 'firtfac_table' 0 19 'folnmx' 0 20 'fragr' 0 21 'hsday_table' 0 22
+'hvb' 0 23 'hvt' 0 24 'ik' 0 25 'im' 0 26 'ir_rain_table' 0 27
+'irr_frac_table' 0 28 'irr_har_table' 0 29 'irr_lai_table' 0 30
+'irr_mad_table' 0 31 'irri_table' 0 32 'isbarren' 0 33 'issnow' 0 34
+'iswater' 0 35 'kc25' 0 36 'ko25' 0 37 'laim' 0 38 'ltovrc' 0 39
+'max_veg_params' 0 40 'mband' 0 41 'micir_rate_table' 0 42 'mp' 0 43 'mrp'
+0 44 'mvt' 0 45 'noahmp_veg_parameters' 0 46 'plantpop_table' 0 47
+'pltday_table' 0 48 'qe25' 0 49 'rc' 0 50 'read_mp_crop_parameters' 0 51
+'read_mp_irrigation_parameters' 0 52 'read_mp_veg_parameters' 0 53 'rhol'
+0 56 'rhos' 0 57 'rmf25' 0 58 'rmr25' 0 59 'rms25' 0 60 'saim' 0 61 'sla'
+0 62 'slarea' 0 63 'sprir_rate_table' 0 64 'taul' 0 65 'taus' 0 66 'tdlef'
+0 67 'tmin' 0 68 'tmp10' 0 69 'tmp11' 0 70 'tmp12' 0 71 'tmp13' 0 72
+'tmp14' 0 73 'tmp15' 0 74 'tmp16' 0 75 'vcmx25' 0 76 'wdpool' 0 77 'wrrat'
+0 78 'xl' 0 79 'z0mvt' 0 80)

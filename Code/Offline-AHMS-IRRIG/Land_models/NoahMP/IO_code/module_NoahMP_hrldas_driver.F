@@ -5,41 +5,40 @@ module module_NoahMP_hrldas_driver
   USE module_sf_noahmpdrv, only: noahmp_init, noahmplsm,SOIL_VEG_GEN_PARM
   USE module_sf_noahmplsm, only: READ_MP_VEG_PARAMETERS
   USE module_date_utilities
-
-
-
-
-
+#ifdef MPP_LAND
+  use module_mpp_land, only: MPP_LAND_PAR_INI, mpp_land_init, getLocalXY, mpp_land_bcast_char
+  use module_mpp_land, only: check_land, my_id , node_info
+  use module_cpl_land, only: cpl_land_init
+#endif
 
   IMPLICIT NONE
 
+#ifdef MPP_LAND
+  include "mpif.h"
+#endif
 
-
-
-
-
+#ifdef WRF_HYDRO
    REAL,    allocatable, DIMENSION(:,:)   :: infxsrt
    REAL,    allocatable, DIMENSION(:,:)   :: sfcheadrt
    REAL,    allocatable, DIMENSION(:,:)   :: soldrain
    REAL,    allocatable, DIMENSION(:,:)   :: solinfl
    REAL,    allocatable, DIMENSION(:,:)   :: hgwrt      ! groundwater head ! Qian
    REAL,    allocatable, DIMENSION(:,:)   :: slope      ! slope
+   REAL,    allocatable, DIMENSION(:,:)   :: GINDEX     !
    REAL,    allocatable, DIMENSION(:,:)   :: sdelev     ! standard deviation of elevation
    REAL,    allocatable, DIMENSION(:,:)   :: ielev      ! subbasin
    REAL,    allocatable, DIMENSION(:,:)   :: QIRRIG     ! irrigation input on soil surface [m/s]
-   REAL,    allocatable, DIMENSION(:,:)   :: DETRAIN    !
-   REAL,    allocatable, DIMENSION(:,:)   :: DETFLOW    !
-   REAL,    allocatable, DIMENSION(:,:)   :: TDET       !
    REAL,    allocatable, DIMENSION(:,:)   :: gwporos    ! acquifer poros, [-]
+   REAL,    allocatable, DIMENSION(:,:)   :: K1_FACTOR  ! soil erodibility factor, [-]
    REAL,    allocatable, DIMENSION(:,:)   :: etpnd, greenfrac, prcp0
-   integer :: forc_typ, snow_assim, HRLDAS_ini_typ, irrigation_option
+   integer :: forc_typ, snow_assim, HRLDAS_ini_typ, irrigation_option,irrigation_method_option,erosion_option
    real    :: etpnd1
    character(len=19)    :: forcDate
    character(len = 256) :: GEO_STATIC_FLNM
    real, allocatable, dimension(:) :: zsoil    
    integer :: kk
    integer :: finemesh, finemesh_factor
-
+#endif
 
   character(len=9), parameter :: version = "v20140513"
   integer :: LDASIN_VERSION
@@ -95,6 +94,14 @@ module module_NoahMP_hrldas_driver
   REAL,    ALLOCATABLE, DIMENSION(:,:)    ::  RAINBL, RAINBL_tmp    ! precipitation entering land model [mm]
 !cjiang irrigation
   INTEGER                                 ::  IOPT_IRR  ! snow/soil temperature time scheme
+  INTEGER                                 ::  IOPT_IRRM
+  INTEGER                                 ::  IOPT_ERO  ! soil erosion scheme  
+!  NoahMP irrigation
+  REAL, ALLOCATABLE, DIMENSION(:,:)   :: IRFRACT, SIFRACT, MIFRACT, FIFRACT
+  REAL, ALLOCATABLE, DIMENSION(:,:)   :: IRWATSI, IRWATMI, IRWATFI, IRELOSS, &
+                                                                     IRSIVOL, IRMIVOL, IRFIVOL, IRRSPLH
+  INTEGER, ALLOCATABLE, DIMENSION(:,:) :: IRNUMSI, IRNUMMI, IRNUMFI
+
 
 ! INOUT (with generic LSM equivalent) (as defined in WRF)
 
@@ -208,7 +215,7 @@ module module_NoahMP_hrldas_driver
    &         ims,ime, jms,jme, kms,kme,  &  ! m -> memory
    &         its,ite, jts,jte, kts,kte   ! t -> tile
 
-
+#ifdef WRF_HYDRO
 ! INOUT (new accumulator variables for output water balance) 
   REAL,    ALLOCATABLE, DIMENSION(:,:)    ::  ACCPRCP  ! accumulated precip [mm]
   REAL,    ALLOCATABLE, DIMENSION(:,:)    ::  ACCECAN  ! accumulated canopy evap [mm]
@@ -216,8 +223,10 @@ module module_NoahMP_hrldas_driver
   REAL,    ALLOCATABLE, DIMENSION(:,:)    ::  ACCEDIR  ! accumulated direct soil evap [mm]
 
 ! Qian, 2017.11
-  REAL,    ALLOCATABLE, DIMENSION(:,:)    ::  ACCRIX   ! accumulated infiltration excess runoff [mm]
-
+  REAL,    ALLOCATABLE, DIMENSION(:,:)    ::  ACCRIX     ! accumulated infiltration excess runoff [mm]
+  REAL,    ALLOCATABLE, DIMENSION(:,:)    ::  ACCTDET    ! accumulated total soil erosion [t ha -1]
+  REAL,    ALLOCATABLE, DIMENSION(:,:)    ::  ACCDETRAIN ! accumulated total soil erosion [t ha -1]
+#endif
 
 !    REAL, ALLOCATABLE, DIMENSION(:)     :: SLDPTH       ! depth to soil interfaces [m]
 
@@ -329,9 +338,9 @@ module module_NoahMP_hrldas_driver
   REAL              :: LAT1
   REAL              :: LON1
 
-
-
-
+#ifdef MPP_LAND
+  integer ix_tmp, jx_tmp
+#endif
 
 !---------------------------------------------------------------------
 !  NAMELIST start
@@ -380,9 +389,9 @@ module module_NoahMP_hrldas_driver
   REAL, DIMENSION(MAX_SOIL_LEVELS) :: soil_thick_input       ! depth to soil interfaces from namelist [m]
 
   namelist / NOAHLSM_OFFLINE /    &
-
-       finemesh,finemesh_factor,forc_typ, snow_assim , GEO_STATIC_FLNM, HRLDAS_ini_typ, irrigation_option, &
-
+#ifdef WRF_HYDRO
+       finemesh,finemesh_factor,forc_typ, snow_assim , GEO_STATIC_FLNM, HRLDAS_ini_typ, irrigation_option, irrigation_method_option, erosion_option, &
+#endif
        indir, nsoil, soil_thick_input, forcing_timestep, noah_timestep, &
        start_year, start_month, start_day, start_hour, start_min, &
        outdir, &
@@ -410,9 +419,9 @@ module module_NoahMP_hrldas_driver
 
     ! initilization for stand alone parallel code.
     integer, optional, intent(in) :: wrfits,wrfite,wrfjts,wrfjte
-
-
-
+#ifdef MPP_LAND
+    call  MPP_LAND_INIT()
+#endif
 
   nsoil                   = -999
   soil_thick_input        = -999
@@ -455,6 +464,8 @@ module module_NoahMP_hrldas_driver
   IOPT_TBOT = tbot_option
   IOPT_STC = temp_time_scheme_option
   IOPT_IRR = irrigation_option
+  IOPT_IRRM = irrigation_method_option
+  IOPT_ERO = erosion_option
 
 !---------------------------------------------------------------------
 !  NAMELIST end
@@ -558,6 +569,25 @@ module module_NoahMP_hrldas_driver
 ! Initialize gridded domain
 !----------------------------------------------------------------------
 
+#ifdef MPP_LAND
+#ifdef WRF_HYDRO
+    if(finemesh .ne. 0) then
+         xstart = (wrfits-1)*finemesh_factor + 1
+         xend = (wrfite-1)*finemesh_factor
+         ystart = (wrfjts-1)*finemesh_factor + 1
+         yend = (wrfjte-1)*finemesh_factor
+         call CPL_LAND_INIT(xstart,xend, ystart,yend)
+         ix_tmp = xend - xstart + 1
+         jx_tmp = yend - ystart + 1
+    else
+#endif
+       call read_dim(hrldas_constants_file,ix_tmp,jx_tmp)
+       call MPP_LAND_PAR_INI(1,ix_tmp,jx_tmp,1)
+       call getLocalXY(ix_tmp,jx_tmp,xstart,ystart,xend,yend)
+#ifdef WRF_HYDRO
+    endif
+#endif
+#endif
 
   call read_hrldas_hdrinfo(hrldas_constants_file, ix, jx, &
        xstart, xend, ystart, yend, &
@@ -571,8 +601,14 @@ module module_NoahMP_hrldas_driver
   startdate = olddate
 
 
+#ifdef MPP_LAND
+   ix = ix_tmp
+   jx = jx_tmp
+#endif
 
+#ifdef WRF_HYDRO
     forcdate = olddate
+#endif
   
   ids = xstart
   ide = xend
@@ -625,6 +661,22 @@ module module_NoahMP_hrldas_driver
   ALLOCATE ( P8W       (XSTART:XEND,KDS:KDE,YSTART:YEND) )  ! 3D pressure, valid at interface [Pa]
   ALLOCATE ( RAINBL    (XSTART:XEND,YSTART:YEND) )    ! precipitation entering land model [mm]
   ALLOCATE ( RAINBL_tmp    (XSTART:XEND,YSTART:YEND) )    ! precipitation entering land model [mm]
+! 
+  ALLOCATE ( IRFRACT   (XSTART:XEND,YSTART:YEND) )    !
+  ALLOCATE ( SIFRACT   (XSTART:XEND,YSTART:YEND) )    !
+  ALLOCATE ( MIFRACT   (XSTART:XEND,YSTART:YEND) )    !
+  ALLOCATE ( FIFRACT   (XSTART:XEND,YSTART:YEND) )    !
+  ALLOCATE ( IRWATSI   (XSTART:XEND,YSTART:YEND) )    !
+  ALLOCATE ( IRWATMI   (XSTART:XEND,YSTART:YEND) )    !
+  ALLOCATE ( IRWATFI   (XSTART:XEND,YSTART:YEND) )    !
+  ALLOCATE ( IRELOSS   (XSTART:XEND,YSTART:YEND) )    !
+  ALLOCATE ( IRSIVOL   (XSTART:XEND,YSTART:YEND) )    !
+  ALLOCATE ( IRMIVOL   (XSTART:XEND,YSTART:YEND) )    !
+  ALLOCATE ( IRFIVOL   (XSTART:XEND,YSTART:YEND) )    !
+  ALLOCATE ( IRRSPLH   (XSTART:XEND,YSTART:YEND) )    !
+  ALLOCATE ( IRNUMSI   (XSTART:XEND,YSTART:YEND) )    !
+  ALLOCATE ( IRNUMMI   (XSTART:XEND,YSTART:YEND) )    !
+  ALLOCATE ( IRNUMFI   (XSTART:XEND,YSTART:YEND) )    !
 
 ! INOUT (with generic LSM equivalent) (as defined in WRF)
 
@@ -741,6 +793,7 @@ module module_NoahMP_hrldas_driver
   ALLOCATE ( GVFMIN    (XSTART:XEND,YSTART:YEND) )  ! annual minimum in vegetation fraction
   ALLOCATE ( GVFMAX    (XSTART:XEND,YSTART:YEND) )  ! annual maximum in vegetation fraction
 
+#ifdef WRF_HYDRO
   ALLOCATE ( ACCPRCP  (XSTART:XEND,YSTART:YEND) )  ! accumulated precip [mm]
   ALLOCATE ( ACCECAN  (XSTART:XEND,YSTART:YEND) )  ! accumulated canopy evap [mm]
   ALLOCATE ( ACCETRAN  (XSTART:XEND,YSTART:YEND) )  ! accumulated transpiration [mm]
@@ -748,6 +801,9 @@ module module_NoahMP_hrldas_driver
 
 ! Qian, 2017.11
   ALLOCATE ( ACCRIX   (XSTART:XEND,YSTART:YEND) )  ! accumulated infiltration excess runoff [mm]
+  ALLOCATE ( ACCTDET  (XSTART:XEND,YSTART:YEND) ) ! accumulated total soil erosion [t ha -1]
+  ALLOCATE ( ACCDETRAIN (XSTART:XEND,YSTART:YEND) ) ! accumulated total soil erosion [t ha -1]
+#endif
 
 !------------------------------------------------------------------------
 ! Needed for MMF_RUNOFF (IOPT_RUN = 5); not part of MP driver in WRF
@@ -772,30 +828,48 @@ module module_NoahMP_hrldas_driver
   ALLOCATE ( CHSTARXY  (XSTART:XEND,YSTART:YEND) )  ! for consistency with MP_init; delete later
   ALLOCATE ( SEAICE    (XSTART:XEND,YSTART:YEND) )  ! seaice fraction
 
+#ifdef WRF_HYDRO
    allocate( greenfrac   (XSTART:XEND,YSTART:YEND))
    greenfrac = 0
 
    ! Qian, 2017.03
    allocate( hgwrt (XSTART:XEND,YSTART:YEND))       ! elevation of groundwater head, m 
    allocate( slope (XSTART:XEND,YSTART:YEND))       ! slope of elevation
+   allocate( GINDEX (XSTART:XEND,YSTART:YEND))      ! Gully index
    allocate( sdelev(XSTART:XEND,YSTART:YEND))       ! standard deviation of elevation
    allocate( ielev(XSTART:XEND,YSTART:YEND))        ! subbasin
+   allocate( K1_FACTOR(XSTART:XEND,YSTART:YEND))    !
    allocate( QIRRIG(XSTART:XEND,YSTART:YEND))       ! irrigation input on soil surface [m/s]
-   allocate( DETRAIN(XSTART:XEND,YSTART:YEND))      !
-   allocate( DETFLOW(XSTART:XEND,YSTART:YEND))      !
-   allocate( TDET(XSTART:XEND,YSTART:YEND))         !
    allocate( gwporos(XSTART:XEND,YSTART:YEND))      ! acquifer poros, [-]
 
    hgwrt  = 0.
    slope  = 0.
+   GINDEX = 0.
    sdelev = 1.  ! not used 
    ielev =  1. 
+   K1_FACTOR = 1.
    QIRRIG = 0.
-   DETRAIN = 0.
-   DETRAIN = 0.
-   TDET = 0.
    gwporos = 0.3
+#endif
 
+! irrigation
+  IRFRACT    = 0.0
+  SIFRACT    = 0.0
+  MIFRACT    = 0.0
+  FIFRACT    = 0.0
+  IRNUMSI    = 0
+  IRNUMMI    = 0
+  IRNUMFI    = 0
+  IRWATSI    = 0.0
+  IRWATMI    = 0.0
+  IRWATFI    = 0.0
+  IRELOSS    = 0.0
+  IRSIVOL    = 0.0
+  IRMIVOL    = 0.0
+  IRFIVOL    = 0.0
+  IRRSPLH    = 0.0
+
+#ifdef WRF_HYDRO
 ! Initialize accumulator variables to 0
   ACCPRCP = 0.0
   ACCECAN = 0.0
@@ -803,6 +877,9 @@ module module_NoahMP_hrldas_driver
   ACCEDIR = 0.0
 ! Qian, 2017.11
   ACCRIX  = 0.0
+  ACCTDET = 0.0
+  ACCDETRAIN = 0.0
+#endif
 
 !yw added  initialize the value
   COSZEN = undefined_value
@@ -958,8 +1035,11 @@ module module_NoahMP_hrldas_driver
 
   CALL READLAND_HRLDAS(HRLDAS_CONSTANTS_FILE, XSTART, XEND, YSTART, YEND,     &
        ISWATER, IVGTYP, ISLTYP, TERRAIN, TMN, XLAT_URB2D, XLONIN, XLAND, SEAICE,MSFTX,MSFTY &
-       ,SLOPE,ielev,gwporos&
+#ifdef WRF_HYDRO
+       ,SLOPE,GINDEX,ielev,gwporos,K1_FACTOR&
+#endif
        )
+      !print*,SLOPE(64,27),GINDEX(64,27),ielev(64,27),gwporos(64,27),K1_FACTOR(64,27),"SLOPE(64,27),GINDEX(64,27),ielev(64,27),gwporos,(64,27),K1_FACTOR(64,27)"
 
 !congjiang, 20210720, CMFD forcing ocean is inconsistent with geo data
   XLAND(120,11)= 2
@@ -985,6 +1065,16 @@ module module_NoahMP_hrldas_driver
   XLAND(119,55)= 2
  
   WHERE(SEAICE > 0.0) XICE = 1.0
+!----------------------------------------------------------------------
+! For spatially-varying irrigation parameters, read in necessary extra fields
+! only if IOPT_IRR >= 1
+!----------------------------------------------------------------------
+  if (irrigation_option >= 1) then
+      CALL READ_AGRICULTURE_DATA(HRLDAS_CONSTANTS_FILE, XSTART, XEND, YSTART, YEND, &
+                                 IRFRACT, SIFRACT, MIFRACT, FIFRACT)
+  end if
+  
+!------------------------------------------------------------------------
 
 !------------------------------------------------------------------------
 ! For IOPT_RUN = 5 (MMF groundwater), read in necessary extra fields
@@ -1007,7 +1097,9 @@ module module_NoahMP_hrldas_driver
      restart_flag = .TRUE.
 
 
+#ifdef WRF_HYDRO
      tmpdate = olddate
+#endif
      call find_restart_file(rank, trim(restart_filename_requested), startdate, khour, olddate, restart_flnm)
 
      call read_restart(trim(restart_flnm), &
@@ -1058,6 +1150,7 @@ module module_NoahMP_hrldas_driver
      call get_from_restart(xstart, xend, xstart, ixfull, jxfull, "QSFC"    , QSFC     )
      call get_from_restart(xstart, xend, xstart, ixfull, jxfull, "SFCRUNOFF",SFCRUNOFF   )
      call get_from_restart(xstart, xend, xstart, ixfull, jxfull, "UDRUNOFF" ,UDRUNOFF    )
+#ifdef WRF_HYDRO
      if(checkRstV("ACCPRCP") .eq. 0) call get_from_restart(xstart, xend, xstart, ixfull, jxfull, "ACCPRCP"  ,ACCPRCP    )
      if(checkRstV("ACCECAN") .eq. 0) call get_from_restart(xstart, xend, xstart, ixfull, jxfull, "ACCECAN"  ,ACCECAN    )
      if(checkRstV("ACCEDIR") .eq. 0) call get_from_restart(xstart, xend, xstart, ixfull, jxfull, "ACCEDIR"  ,ACCEDIR    )
@@ -1065,6 +1158,20 @@ module module_NoahMP_hrldas_driver
 
 ! Qian, 2017.11
      if(checkRstV("ACCRIX") .eq. 0) call get_from_restart(xstart, xend, xstart, ixfull, jxfull, "ACCRIX" ,ACCRIX    )
+#endif
+     ! below for irrigation scheme
+     IF (irrigation_option > 0) THEN
+        call get_from_restart(xstart, xend, xstart, ixfull, jxfull, "IRNUMSI" , IRNUMSI  )
+        call get_from_restart(xstart, xend, xstart, ixfull, jxfull, "IRNUMMI" , IRNUMMI  )
+        call get_from_restart(xstart, xend, xstart, ixfull, jxfull, "IRNUMFI" , IRNUMFI  )
+        call get_from_restart(xstart, xend, xstart, ixfull, jxfull, "IRWATSI" , IRWATSI  )
+        call get_from_restart(xstart, xend, xstart, ixfull, jxfull, "IRWATMI" , IRWATMI  )
+        call get_from_restart(xstart, xend, xstart, ixfull, jxfull, "IRWATFI" , IRWATFI  )
+        call get_from_restart(xstart, xend, xstart, ixfull, jxfull, "IRSIVOL" , IRSIVOL  )
+        call get_from_restart(xstart, xend, xstart, ixfull, jxfull, "IRMIVOL" , IRMIVOL  )
+        call get_from_restart(xstart, xend, xstart, ixfull, jxfull, "IRFIVOL" , IRFIVOL  )
+     ENDIF
+
     ! below for opt_run = 5
      call get_from_restart(xstart, xend, xstart, ixfull, jxfull, "SMOISEQ"   , SMOISEQ    )
      call get_from_restart(xstart, xend, xstart, ixfull, jxfull, "AREAXY"    , AREAXY     )
@@ -1101,6 +1208,7 @@ module module_NoahMP_hrldas_driver
      SNOW      =  undefined_value
      SNOWH     =  undefined_value
 
+#ifdef WRF_HYDRO
 
   if((forc_typ .gt. 2) .and. (forc_typ .ne. 6) ) HRLDAS_ini_typ = 0
 
@@ -1116,6 +1224,12 @@ module module_NoahMP_hrldas_driver
           ".LDASIN_DOMAIN"//hgrid
      endif
 
+#else
+
+     inflnm = trim(indir)//"/"//&
+          startdate(1:4)//startdate(6:7)//startdate(9:10)//startdate(12:13)//&
+          ".LDASIN_DOMAIN"//hgrid
+#endif
 
      CALL READINIT_HRLDAS(inflnm, xstart, xend, ystart, yend,  &
           NSOIL, DZS, OLDDATE, LDASIN_VERSION, SMOIS,       &
@@ -1129,19 +1243,29 @@ module module_NoahMP_hrldas_driver
      CALL READVEG_HRLDAS(inflnm, xstart, xend, ystart, yend,  &
           OLDDATE, IVGTYP, VEGFRA, LAI, GVFMIN, SHDMAX)
 
+#ifdef WRF_HYDRO
   else   !  HRLDAS_ini_typ == 0, initialize from wrfinput       
 
 
+#ifdef MPP_LAND
+    call HYDRO_HRLDAS_ini_mpp   &
+#else
     call HYDRO_HRLDAS_ini   &
+#endif
        (trim(hrldas_constants_file), xend-xstart+1,yend-ystart+1, &
        nsoil,SMOIS(:,1:NSOIL,:),TSLB(:,1:NSOIL,:),SH2O(:,1:NSOIL,:), &
        CANWAT, TSK,SNOW,SNOWH,lai,VEGFRA,IVGTYP,FNDSNOWH, hgwrt)
 
        greenfrac = 0.0
+#ifdef MPP_LAND
+       call get_greenfrac_mpp &
+#else
        call get_greenfrac &
+#endif
         (trim(GEO_STATIC_FLNM),greenfrac, ix, jx, olddate, SHDMAX)
        !yw SHDMAX = maxval(greenfrac)
   endif
+#endif
 
      SNOW = SNOW * 1000.    ! Convert snow water equivalent to mm.
      VEGFRA = VEGFRA * 100.
@@ -1157,9 +1281,12 @@ module module_NoahMP_hrldas_driver
                   FWETXY, SNEQVOXY, ALBOLDXY,  QSNOWXY, WSLAKEXY,    ZWTXY,     WAXY, &
                     WTXY,   TSNOXY,  ZSNSOXY,  SNICEXY,  SNLIQXY, LFMASSXY, RTMASSXY, &
                 STMASSXY,   WOODXY, STBLCPXY, FASTCPXY,   XSAIXY,                     &
+                irnumsi  ,irnummi  ,irnumfi  ,irwatsi,    &
+                irwatmi  ,irwatfi  ,ireloss  ,irsivol,    &
+                irmivol  ,irfivol  ,irrsplh  ,            &
                   T2MVXY,   T2MBXY, CHSTARXY,                                         &
                    NSOIL,  .false.,                                                   &
-                  .true.,runoff_option,                                                   &
+                  .true.,runoff_option, iopt_irr, iopt_irrm,                          &
                   ids,ide+1, jds,jde+1, kds,kde,                &  ! domain
                   ims,ime, jms,jme, kms,kme,                &  ! memory
                   its,ite, jts,jte, kts,kte                 &  ! tile
@@ -1177,7 +1304,11 @@ module module_NoahMP_hrldas_driver
 
   
 ! jlm && NTIME=(KHOUR+1)*3600./nint(dtbl)  !!dont need to run for an extra hour! the whole point.
+#ifdef WRF_HYDRO
   NTIME = (KHOUR)*3600./nint(dtbl)
+#else
+  NTIME = (KHOUR+1)*3600./nint(dtbl)
+#endif
 
   print*, "Total simulation time (hour),KHOUR = ", KHOUR
   print*, "Number of TIMESTEP,          NTIME = ", NTIME
@@ -1186,6 +1317,7 @@ module module_NoahMP_hrldas_driver
   call system_clock(count=clock_count_1)   ! Start a timer
 
 
+#ifdef WRF_HYDRO
    allocate( infxsrt  (ix,jx) )
    allocate( sfcheadrt(ix,jx) )
    allocate( soldrain (ix,jx) )
@@ -1210,15 +1342,19 @@ module module_NoahMP_hrldas_driver
    
    print*, "zsoil/soil_thick_input = ", soil_thick_input(1:NSOIL) 
 
+#ifdef HYDRO_D
    print*,'-----------------------------------------------------'
    print*,'calling hrldas_drv_HYDRO_ini ......' 
+#endif
 
    call hrldas_drv_HYDRO_ini(TSLB(:,1:NSOIL,:),SMOIS(:,1:NSOIL,:),SH2O(:,1:NSOIL,:), &
          infxsrt,sfcheadrt,soldrain,hgwrt,TERRAIN, ix,jx,NSOIL,real(noah_timestep), &
          olddate,zsoil(1:NSOIL),ISLTYP,IVGTYP,XLAND)
 
+#ifdef HYDRO_D
    print*,'finish hrldas_drv_HYDRO_ini'
    print*,'-----------------------------------------------------'
+#endif
 
 
    if(finemesh .ne. 0 ) then
@@ -1229,6 +1365,7 @@ module module_NoahMP_hrldas_driver
        endif
        return
    endif
+#endif
 
    NTIME_out = NTIME 
 
@@ -1265,8 +1402,15 @@ end subroutine land_driver_ini
      inflnm_template = trim(indir)//"/<date>.LDASIN_DOMAIN"//hgrid
 
 
+#ifdef MPP_LAND
+     call mpp_land_bcast_char(19,OLDDATE(1:19))
+#endif
 
+#ifdef WRF_HYDRO
 
+#ifdef MPP_LAND
+     call mpp_land_bcast_char(19,forcDate(1:19))
+#endif
      if(finemesh .ne. 0) goto 991
     
      if(forc_typ .eq. 0) then
@@ -1290,12 +1434,23 @@ end subroutine land_driver_ini
 
 !C.Jiang
 
-       call get_irrig &
-        (trim(GEO_STATIC_FLNM), ix, jx, olddate, QIRRIG)
+#ifdef MPP_LAND
+!       call get_irrig_mpp &
+#else
+!       call get_irrig &
+#endif
+!        (trim(GEO_STATIC_FLNM), ix, jx, olddate, QIRRIG)
 
-        QIRRIG = QIRRIG * 0.18
+!        QIRRIG = QIRRIG * 0.1
 
-        WHERE (ielev /= 4)  QIRRIG = 0.
+!        WHERE (ielev /= 4)  QIRRIG = 0.
+#else
+     CALL READFORC_HRLDAS(INFLNM_TEMPLATE, FORCING_TIMESTEP, OLDDATE,  &
+          XSTART, XEND, YSTART, YEND,                                  &
+          T_PHY(:,1,:),QV_CURR(:,1,:),U_PHY(:,1,:),V_PHY(:,1,:),          &
+	    P8W(:,1,:), GLW       ,SWDOWN      ,RAINBL_tmp, LAI, VEGFRA)
+     VEGFRA = VEGFRA * 100.
+#endif
 
 991  continue
 
@@ -1369,13 +1524,17 @@ end subroutine land_driver_ini
 		TERRAIN,                                                      &
                   IDVEG, IOPT_CRS, IOPT_BTR, IOPT_RUN,  IOPT_SFC,   IOPT_FRZ, &
 	       IOPT_INF, IOPT_RAD, IOPT_ALB, IOPT_SNF, IOPT_TBOT,   IOPT_STC, &
+               IOPT_IRR, IOPT_IRRM,                                           &
 	        IZ0TLND,                                                      &
 		  T_PHY,  QV_CURR,    U_PHY,    V_PHY,    SWDOWN,        GLW, &
 		    P8W,   RAINBL,                                            &
+                IRFRACT,  SIFRACT,  MIFRACT,  FIFRACT,                        &
 		    TSK,      HFX,      QFX,       LH,    GRDFLX,     SMSTAV, &
 		 SMSTOT,SFCRUNOFF, UDRUNOFF,   ALBEDO,     SNOWC,      SMOIS, &
 		   SH2O,     TSLB,     SNOW,    SNOWH,    CANWAT,     ACSNOM, &
 		 ACSNOW,    EMISS,     QSFC,                                  &
+                IRNUMSI,  IRNUMMI,  IRNUMFI,  IRWATSI,   IRWATMI,    IRWATFI, & ! IN/OUT Noah MP only
+                IRELOSS,  IRSIVOL,  IRMIVOL,  IRFIVOL,   IRRSPLH,   LLANDUSE, & 
 		ISNOWXY,     TVXY,     TGXY, CANICEXY,  CANLIQXY,      EAHXY, &
 		  TAHXY,     CMXY,     CHXY,   FWETXY,  SNEQVOXY,   ALBOLDXY, &
 		QSNOWXY, WSLAKEXY,    ZWTXY,     WAXY,      WTXY,     TSNOXY, &
@@ -1390,10 +1549,12 @@ end subroutine land_driver_ini
 		  SHGXY,    SHCXY,    SHBXY,    EVGXY,     EVBXY,      GHVXY, &
 		  GHBXY,    IRGXY,    IRCXY,    IRBXY,      TRXY,      EVCXY, &
 	       CHLEAFXY,   CHUCXY,   CHV2XY,   CHB2XY,                        &                          
-                ACCPRCP,  ACCECAN, ACCETRAN,  ACCEDIR,    ACCRIX,             &
+#ifdef WRF_HYDRO
+                ACCPRCP,  ACCECAN, ACCETRAN,  ACCEDIR,    ACCRIX,   ACCTDET,  &
+             ACCDETRAIN,                                                      &
               sfcheadrt,  INFXSRT, soldrain,  solinfl,     hgwrt,             &    
-                  slope,   sdelev,    ielev,  gwporos,    QIRRIG,             &
-                DETRAIN,  DETFLOW,     TDET,  IOPT_IRR,                       &
+                  slope,   sdelev,    ielev,  gwporos,    K1_FACTOR,IOPT_ERO,QIRRIG, &
+#endif
                 ids,ide, jds,jde, kds,kde,                      &
                 ims,ime, jms,jme, kms,kme,                      &
                 its,ite, jts,jte, kts,kte )
@@ -1472,15 +1633,16 @@ end subroutine land_driver_ini
               call add_to_output(ZWTXY      , "ZWT"     , "Depth to water table"                 , "m"                     )
               call add_to_output(WAXY       , "WA"      , "Water in aquifer"                     , "kg m{-2}"              )
               call add_to_output(WTXY       , "WT"      , "Water in aquifer and saturated soil"  , "kg m{-2}"              )
+#ifdef WRF_HYDRO
               call add_to_output(ACCPRCP    , "ACCPRCP" , "Accumulated precip"                   , "mm"                    )
               call add_to_output(ACCECAN    , "ACCECAN" , "Accumulated canopy evap"              , "mm"                    )
               call add_to_output(ACCETRAN   , "ACCETRAN", "Accumulated transpiration"            , "mm"                    )
               call add_to_output(ACCEDIR    , "ACCEDIR" , "Accumulated direct soil evap"         , "mm"                    )
-              call add_to_output(ACCRIX    ,  "ACCRIX" ,  "Accumulated infil excess runoff"      , "mm"                    )
+              call add_to_output(ACCRIX     , "ACCRIX" ,  "Accumulated infil excess runoff"      , "mm"                    )
 ! C.Jiang, soil erosion
-              call add_to_output(DETRAIN    , "DETRAIN" ,  "raindrop detachment"                 , "kg?"                   )
-              call add_to_output(DETFLOW    , "DETFLOW" ,  "overland flow detachment"            , "kg?"                   )
-              call add_to_output(TDET       , "TDET   " ,  "total detachment of soil"            , "kg?"                   )
+              call add_to_output(ACCDETRAIN , "ACCDETRAIN" ,  "raindrop detachment"              , "t ha {-1}"             )
+              call add_to_output(ACCTDET    , "ACCTDET" ,   "Accumulated water erosion"          , "t ha{-1}"              )
+#endif
         ! Additional needed to close the canopy energy budget
               call add_to_output(SAVXY      , "SAV"     , "Solar radiative heat flux absorbed by vegetation", "W m{-2}"    )
               call add_to_output(TRXY       , "TR"      , "Transpiration heat"                     , "W m{-2}"             )
@@ -1558,6 +1720,17 @@ end subroutine land_driver_ini
               call add_to_output(QSPRINGSXY , "QSPRINGS" , "Mass of wood and woody roots"         , "g m{-2}"               )
               call add_to_output(QSLATXY    , "QSLAT"    , "Stable carbon in deep soil"           , "g m{-2}"               )
 	    ENDIF
+        ! Irrigation
+            IF (irrigation_option > 0) THEN
+              call add_to_output(IRNUMSI    , "IRNUMSI" , "Sprinkler irrigation count"             , "-"                   )
+              call add_to_output(IRNUMMI    , "IRNUMMI" , "Micro irrigation count"                 , "-"                   )
+              call add_to_output(IRNUMFI    , "IRNUMFI" , "Flood irrigation count"                 , "-"                   )
+              call add_to_output(IRELOSS    , "IRELOSS" , "Sprinkler Evaporation"                  , "mm"                  )
+              call add_to_output(IRSIVOL    , "IRSIVOL" , "Sprinkler irrigation amount"            , "mm"                  )
+              call add_to_output(IRMIVOL    , "IRMIVOL" , "Micro irrigation amount"                , "mm"                  )
+              call add_to_output(IRFIVOL    , "IRFIVOL" , "Flood irrigation amount"                , "mm"                  )
+              call add_to_output(IRRSPLH    , "IRRSPLH" , "Latent heating due to sprinkler"        , "W m{-2}"             )
+            ENDIF
 
            enddo DEFINE_MODE_LOOP
 
@@ -1601,6 +1774,7 @@ end subroutine land_driver_ini
             if ( (restart_frequency_hours .gt. 0) .and. (mod(ITIME, int(restart_frequency_hours*3600./nint(dtbl))) == 0)) then
 
                  call lsm_restart()  ! jlm - i moved all the restart code to a subroutine. 
+#ifdef WRF_HYDRO
             else
                if (restart_frequency_hours <= 0) then
                   if ( (olddate(9:10) == "01") .and. (olddate(12:13) == "00") .and. &
@@ -1610,20 +1784,31 @@ end subroutine land_driver_ini
                endif
         
 
+#endif
             endif
 
 
+#ifdef WRF_HYDRO
+#ifdef HYDRO_D
       write(6,*) "-----------------------------------------------------"
       write(6,*) "calling hrldas_drv_HYDRO ......"
       write(6,*) "at timestep = ", ITIMESTEP
-
+#endif
+      
+       print*,QIRRIG(83,21),"QIRRIG(85,4) hrldas_drv_HYDRO-1"
+      QIRRIG=QIRRIG*DTBL*1000.
       call hrldas_drv_HYDRO(TSLB(:,1:NSOIL,:),  SMOIS(:,1:NSOIL,:), SH2O(:,1:NSOIL,:), &
                             infxsrt, sfcheadrt, soldrain, solinfl, hgwrt, XLAND, &
                             TERRAIN, RAINBL,    QFX*DTBL, &
-                            ix,  jx,  NSOIL, QIRRIG*DTBL*1000.) 
+                            ix,  jx,  NSOIL, QIRRIG, K1_FACTOR, slope, GINDEX,LAI) 
+      QIRRIG=QIRRIG/(DTBL*1000)
+      print*,QIRRIG(83,21),"QIRRIG(85,4) hrldas_drv_HYDRO-2"
 
+#ifdef HYDRO_D
       write(6,*) "finish hrldas_drv_HYDRO at timestep = ", ITIMESTEP
       write(6,*) "-----------------------------------------------------"
+#endif
+#endif
 
       ITIMESTEP = ITIMESTEP + 1
 
@@ -1690,12 +1875,26 @@ subroutine lsm_restart()
   call add_to_restart(QSFC      , "QSFC"  )
   call add_to_restart(SFCRUNOFF , "SFCRUNOFF")
   call add_to_restart(UDRUNOFF  , "UDRUNOFF" )
+#ifdef WRF_HYDRO
   call add_to_restart(ACCPRCP   , "ACCPRCP" )
   call add_to_restart(ACCECAN   , "ACCECAN" )
   call add_to_restart(ACCEDIR   , "ACCEDIR" )
   call add_to_restart(ACCETRAN  , "ACCETRAN" )
 ! Qian, 2017.11
   call add_to_restart(ACCRIX  , "ACCRIX" )
+#endif
+ ! irrigation scheme
+  IF (irrigation_option > 0) THEN
+     call add_to_restart(IRNUMSI   , "IRNUMSI")
+     call add_to_restart(IRNUMMI   , "IRNUMMI")
+     call add_to_restart(IRNUMFI   , "IRNUMFI")
+     call add_to_restart(IRWATSI   , "IRWATSI")
+     call add_to_restart(IRWATMI   , "IRWATMI")
+     call add_to_restart(IRWATFI   , "IRWATFI")
+     call add_to_restart(IRSIVOL   , "IRSIVOL") 
+     call add_to_restart(IRMIVOL   , "IRMIVOL")
+     call add_to_restart(IRFIVOL   , "IRFIVOL")
+  ENDIF
 
   ! below for opt_run = 5
   call add_to_restart(SMOISEQ   , "SMOISEQ"  , layers="SOIL"  )

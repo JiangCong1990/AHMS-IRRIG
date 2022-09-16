@@ -281,8 +281,15 @@ module module_HYDRO_drv
                    rt2d(did)%elev,           rt2d(did)%bank,         &
                    rt2d(did)%width,                                  &
                    rt2d(did)%bot,            rt2d(did)%fbed,         &
-                   rt2d(did)%topo, rt2d(did)%irg, rt2d(did)%sabs, rt2d(did)%ac_precevap, &
-                   rt2d(did)%ac_irgrw, rt2d(did)%ac_irggw,rt2d(did)%veloc)
+                   rt2d(did)%topo,           rt2d(did)%irg,          &
+                   rt2d(did)%sabs,           rt2d(did)%ac_precevap,  &
+                   rt2d(did)%ac_irgrw,       rt2d(did)%ac_irggw,     &
+                   rt2d(did)%veloc,                                  &
+                   rt2d(did)%qsKR,           nlst_rt(did)%NumFracts,    &
+                   rt2d(did)%SusSed,         rt2d(did)%DepSed,       &
+                   rt2d(did)%ErodSed,        rt2d(did)%SedFlux,      &
+                   rt2d(did)%t_SedFlux,      rt2d(did)%qsEH,         &
+                   rt2d(did)%SedConc,        rt2d(did)%T_SedConc)
             endif
 
           endif
@@ -726,8 +733,12 @@ module module_HYDRO_drv
           rt2d(did)%jtran,                rt2d(did)%ktran,             rt2d(did)%fluxtran, &
           rt2d(did)%fluxtranav,           nlst_rt(did)%dt_flowtran,    rt2d(did)%count_flowout,&
           rt2d(did)%ac_ocnsf,             rt2d(did)%ac_fixsf,                              &
-          rt2d(did)%ac_pmewsf,            rt2d(did)%ac_roff_grnd,      rt2d(did)%w_sf, rt2d(did)%sdep,did,rt2d(did)%veloc)
-
+          rt2d(did)%ac_pmewsf,            rt2d(did)%ac_roff_grnd,      rt2d(did)%w_sf, &
+          rt2d(did)%sdep,                 did,                         rt2d(did)%veloc,&
+          rt2d(did)%qsKR,                 nlst_rt(did)%indexeros,      nlst_rt(did)%NumFracts,&
+          rt2d(did)%SusSed,               rt2d(did)%DepSed,            rt2d(did)%ErodSed,&
+          rt2d(did)%SedFlux,              rt2d(did)%t_SedFlux,         rt2d(did)%qsEH,&
+          rt2d(did)%SedConc,              rt2d(did)%T_SedConc,         rt2d(did)%sedfluxtranav)
 
  ! C.Jiang
  ! Update exponential-decay running-mean discharge (disch)
@@ -886,6 +897,7 @@ module module_HYDRO_drv
                   AGGFACYRT, AGGFACXRT
 
        real    :: SICEAGGRT(nlst_rt(did)%NSOIL)  ! Qian, 2016.12
+       real    :: IRRIGAGGRT                     ! Cong, 2022.08
        real    :: peta, neta  ! for deviation
 
        neta = -1.E-6
@@ -905,6 +917,7 @@ module module_HYDRO_drv
                SICEAGGRT(KRT) = 0.
                RT_DOMAIN(did)%SH2OAGGRT(KRT) = 0.
              end do
+             IRRIGAGGRT = 0.
 
              do AGGFACYRT=nlst_rt(did)%AGGFACTRT-1,0,-1
               do AGGFACXRT=nlst_rt(did)%AGGFACTRT-1,0,-1
@@ -936,9 +949,16 @@ module module_HYDRO_drv
                   RT_DOMAIN(did)%SH2OAGGRT(KRT) = RT_DOMAIN(did)%SH2OAGGRT(KRT) &
                                                 + max(0., RT_DOMAIN(did)%SMCRT(IXXRT,JYYRT,KRT))
                 end do
+                 
+! aggregate irrigation amount
+
+                IRRIGAGGRT = IRRIGAGGRT + rt2d(did)%actirg(IXXRT,JYYRT)
 
               end do
              end do
+! update constrained irrigation amount
+
+            RT_DOMAIN(did)%IRRIG(I,J) = IRRIGAGGRT/(nlst_rt(did)%AGGFACTRT**2) * (1000.*nlst_rt(did)%dtrt)  ! m/s --> mm
 
             RT_DOMAIN(did)%SFCHEADRT(I,J) = RT_DOMAIN(did)%SFCHEADAGGRT &
                                           / (nlst_rt(did)%AGGFACTRT**2)
@@ -1189,7 +1209,8 @@ module module_HYDRO_drv
                            rt_domain(did)%jx,&
                            rt_domain(did)%ixrt,&
                            rt_domain(did)%jxrt,&
-                           nlst_rt(did)%nsoil) ! Qian, 2016.06
+                           nlst_rt(did)%nsoil, &
+                           nlst_rt(did)%NumFracts) ! Qian, 2016.06
 #ifdef HYDRO_D
         write(6,*) "finish rt2d_allocate"
 #endif
@@ -1372,6 +1393,11 @@ module module_HYDRO_drv
          call get2d_lsm_real("XLAT",RT_DOMAIN(did)%lat_lsm,RT_DOMAIN(did)%ix,RT_DOMAIN(did)%jx,trim(nlst_rt(did)%geo_static_flnm))
          call get2d_lsm_real("XLONG",RT_DOMAIN(did)%lon_lsm,RT_DOMAIN(did)%ix,RT_DOMAIN(did)%jx,trim(nlst_rt(did)%geo_static_flnm))
          call get2d_lsm_vegtyp(RT_DOMAIN(did)%VEGTYP,RT_DOMAIN(did)%ix,RT_DOMAIN(did)%jx,trim(nlst_rt(did)%geo_static_flnm))
+
+!         ! C.Jiang 2020
+!         call get2d_lsm_real("SLOPERT",RT_DOMAIN(did)%slope,RT_DOMAIN(did)%ix,RT_DOMAIN(did)%jx,trim(nlst_rt(did)%HRLDAS_CONSTANTS_FILE))
+!         call get2d_lsm_real("LAI",RT_DOMAIN(did)%LAI,RT_DOMAIN(did)%ix,RT_DOMAIN(did)%jx,trim(nlst_rt(did)%HRLDAS_CONSTANTS_FILE))
+!         call get2d_lsm_real("K1_FACTOR",RT_DOMAIN(did)%K1_FACTOR,RT_DOMAIN(did)%ix,RT_DOMAIN(did)%jx,trim(nlst_rt(did)%HRLDAS_CONSTANTS_FILE))
 
          ! coupling with WRF
 !         if(nlst_rt(did)%sys_cpl .eq. 2 ) then

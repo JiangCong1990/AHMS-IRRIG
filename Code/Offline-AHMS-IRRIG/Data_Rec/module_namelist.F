@@ -44,7 +44,9 @@ CONTAINS
           integer:: num_transect = 0          ! number of transects specified, Qian, 2016.06
           real   :: DT_2DTHRT = 0.            ! timestep interval of terrain hydrologic routing, Qian
           real   :: dt_flowtran = 0.          ! interval for streamflow output, Qian, 2016.10
-          integer:: IRRIG_OPTION = 0
+          integer:: IRRIG_OPTION = 0          ! Irrigation module, C.Jiang, 2021.08
+          integer:: indexeros = 0             ! Erosion and Sediment Routing, C.Jiang, 2022.01
+          integer:: NumFracts = 0             ! Maximum number of size fractions of soil types, C.Jiang, 2022.01
           real   :: DTRT = 0.
           real   :: dxrt = 0.
           real   :: gwChanCondConstIn = 0.
@@ -103,7 +105,7 @@ CONTAINS
             CHRTOUT_DOMAIN,CHRTOUT_GRID,LSMOUT_DOMAN,RTOUT_DOMAIN, output_gw, outlake, &
             output_rt2d, INTERGWSFW, OVCHRTSWCRT, OVERCHANRT_METHOD, num_transect, &
             DT_2DTHRT, &
-            dt_flowtran, rt2d_flnm, RESTART_OUTNAME, GW2D_OUTNAME, RT2D_OUTNAME, IRRIG_OPTION     ! Qian, 2016.06
+            dt_flowtran, rt2d_flnm, RESTART_OUTNAME, GW2D_OUTNAME, RT2D_OUTNAME, IRRIG_OPTION, indexeros, NumFracts     ! Qian, 2016.06
                     
 #ifdef MPP_LAND
        if(IO_id .eq. my_id) then
@@ -253,7 +255,9 @@ CONTAINS
     nlst%ntran             = num_transect       ! Qian, 2016.06
     nlst%DT_2DTHRT         = DT_2DTHRT          ! Qian
     nlst%dt_flowtran       = dt_flowtran        ! Qian, 2016.10
-    nlst%IRRIG_OPTION      = IRRIG_OPTION       ! CJiang
+    nlst%IRRIG_OPTION      = IRRIG_OPTION       ! C.Jiang,2022.01
+    nlst%indexeros         = indexeros          ! C.Jiang,2022.01
+    nlst%NumFracts         = NumFracts          ! C.Jiang,2022.01
  
 ! files
     nlst%rt2d_flnm       = rt2d_flnm            ! Qian, 2016.06
@@ -292,6 +296,8 @@ CONTAINS
     write(6,*) " nlst%DT_2DTHRT ", DT_2DTHRT                  ! Qian
     write(6,*) " nlst%dt_flowtran ", dt_flowtran              ! Qian, 2016.10
     write(6,*) " nlst%IRRIG_OPTION ", IRRIG_OPTION            ! cjiang
+    write(6,*) " nlst%indexeros ", indexeros
+    write(6,*) " nlst%NumFracts ", NumFracts
     write(6,*) " nlst%dxrt0 ", dxrt
     write(6,*) " nlst%AGGFACTRT ", AGGFACTRT
     write(6,*) " nlst%GWBASESWCRT ", GWBASESWCRT

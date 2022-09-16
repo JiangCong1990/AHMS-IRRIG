@@ -1077,7 +1077,7 @@ end subroutine get_albedo12m_netcdf
                       elev,   bank,  hlake,  rough,  &
                       sdelev, sdep,  width_obs,      &!!Cong,20190715
                       hycond, poros, head,   aqthick,&
-                      filename,topo)
+                      filename,topo,irgswfract)
     implicit none
 
 #include <netcdf.inc>
@@ -1099,6 +1099,7 @@ end subroutine get_albedo12m_netcdf
     REAL,    OPTIONAL, INTENT(INOUT), DIMENSION(ix,jx) :: head
     REAL,    OPTIONAL, INTENT(INOUT), DIMENSION(ix,jx) :: aqthick
     REAL,    INTENT(INOUT), DIMENSION(ix,jx) :: topo
+    REAL,    INTENT(INOUT), DIMENSION(ix,jx) :: irgswfract
 
 #ifdef MPP_LAND
     INTEGER, ALLOCATABLE,   DIMENSION(:,:)   :: gltype
@@ -1116,6 +1117,7 @@ end subroutine get_albedo12m_netcdf
     REAL,    ALLOCATABLE,   DIMENSION(:,:)   :: gaqthick
     REAL,    ALLOCATABLE,   DIMENSION(:,:)   :: gihead
     REAL,    ALLOCATABLE,   DIMENSION(:,:)   :: gtopo  ! topography, m
+    REAL,    ALLOCATABLE,   DIMENSION(:,:)   :: girgswfract  !
 #endif
 
     REAL,    DIMENSION(ix,jx) :: ihead !, topo 
@@ -1135,10 +1137,11 @@ end subroutine get_albedo12m_netcdf
        allocate(ghycond(global_rt_nx,global_rt_ny))
        allocate(sdelev(global_rt_nx,global_rt_ny))
        allocate(gporos (global_rt_nx,global_rt_ny))
+       if (present(irgswfract)) allocate(girgswfract (global_rt_nx,global_rt_ny))
        if (present(aqthick)) allocate(gaqthick(global_rt_nx,global_rt_ny)) 
        if (present(head)) allocate(ghead  (global_rt_nx,global_rt_ny))
-       if (present(head)) allocate(gihead (global_rt_nx,global_rt_ny))
-       if (present(head)) allocate(gtopo  (global_rt_nx,global_rt_ny))
+       if (present(ihead)) allocate(gihead (global_rt_nx,global_rt_ny))
+       if (present(gtopo)) allocate(gtopo  (global_rt_nx,global_rt_ny))
     else
        allocate(gltype (1,1))
        allocate(gielev (1,1))
@@ -1153,8 +1156,9 @@ end subroutine get_albedo12m_netcdf
        allocate(gporos (1,1))
        if (present(aqthick)) allocate(gaqthick(1,1))
        if (present(head)) allocate(ghead  (1,1))
-       if (present(head)) allocate(gihead (1,1))
-       if (present(head)) allocate(gtopo  (1,1))
+       if (present(ihead)) allocate(gihead (1,1))
+       if (present(topo)) allocate(gtopo  (1,1))
+       if (present(irgswfract)) allocate(girgswfract  (1,1))
     endif
 
 #ifndef PARALLELIO
@@ -1284,6 +1288,24 @@ end subroutine get_albedo12m_netcdf
                    sdelev,  ix,        jx,        &
 #endif
                    trim(filename) )
+
+    ! area irrigated with surface water expressed as percentage of total area
+    ! equipped for irrigation
+    i = get2d_real("IRSWFRACT",  &
+#ifdef MPP_LAND
+
+#ifndef PARALLELIO
+                   girgswfract, global_rt_nx, global_rt_ny, &
+#else
+                   irgswfract,  ix,        jx,        &
+#endif
+
+#else
+                   irgswfract,  ix,        jx,        &
+#endif
+                   trim(filename) )
+     irgswfract=irgswfract/100.
+
     ! Manning roughness 
 !    i = get2d_real("ROUGH",  &
 !#ifdef MPP_LAND
@@ -3375,8 +3397,11 @@ end subroutine get_albedo12m_netcdf
                              ac_cgi,     ac_cgl,           ac_cui,   ac_ocngw,&
                              ac_ocnsf,   ac_fixgw,       ac_fixsf,      ltype,&
                              elev,       bank,                width,      bot,&
-                             fbed,topo,irg,sabs,ac_precevap,ac_irgrw,ac_irggw,&
-                             veloc)
+                             fbed,topo,  irg,               sabs, ac_precevap,&
+                             ac_irgrw,   ac_irggw,            veloc,          &
+                             qsKR,       NumFracts,         SusSed,    DepSed,&
+                             ErodSed,    SedFlux,        t_SedFlux,      qsEH,&
+                             SedConc,    T_SedConc)
 #ifdef MPP_LAND
     USE module_mpp_land
 #endif
@@ -3388,6 +3413,7 @@ end subroutine get_albedo12m_netcdf
     integer,  intent(in)                       :: split_output_count
     integer,  intent(in)                       :: ixrt, jxrt
     integer,  intent(in)                       :: nsoil
+    integer,  intent(in)                       :: NumFracts
     real,     intent(in)                       :: dt
     character(len=*), intent(in)               :: startdate
     character(len=*), intent(in)               :: date
@@ -3406,6 +3432,13 @@ end subroutine get_albedo12m_netcdf
     real,     intent(in), OPTIONAL, dimension(ixrt,jxrt) :: hlake
     real,     intent(in), OPTIONAL, dimension(ixrt,jxrt) :: streamflux
     real,     intent(in), OPTIONAL, dimension(ixrt,jxrt) :: veloc
+    !
+    real,     intent(in), OPTIONAL, dimension(ixrt,jxrt) :: qsKR
+    real,     intent(in), OPTIONAL, dimension(ixrt,jxrt) :: T_SedConc
+    real,     intent(in), OPTIONAL, dimension(ixrt,jxrt) :: t_SedFlux
+    real,     intent(in), OPTIONAL, dimension(NumFracts,ixrt,jxrt) :: &
+                                             qsEH,SusSed,DepSed,ErodSed,SedFlux,SedConc
+
     integer,  intent(in), OPTIONAL, dimension(ixrt,jxrt) :: istreamflux 
     real,     intent(in), OPTIONAL, dimension(ixrt,jxrt) :: w_us
     real,     intent(in), OPTIONAL, dimension(ixrt,jxrt) :: w_gw
@@ -3447,7 +3480,7 @@ end subroutine get_albedo12m_netcdf
     real,    dimension(2)     :: sp
 
     integer :: dimid_ix, dimid_jx, dimid_times, dimid_datelen, varid, n
-    integer :: iret, dimid_soil, i,j,ii,jj
+    integer :: iret, dimid_soil, i,j,ii,jj, dimid_sFracts
     real    :: long_cm,lat_po,fe,fn, chan_in
     integer :: seconds_since, decimation, ixrtd,jxrtd, hires_flag
     integer :: iret_proj, iret_x, iret_y
@@ -3768,6 +3801,8 @@ end subroutine get_albedo12m_netcdf
        iret = nf_def_dim(ncid, "x",     ixrtd,        dimid_ix)    !-- make a decimated grid
        iret = nf_def_dim(ncid, "y",     jxrtd,        dimid_jx)
        iret = nf_def_dim(ncid, "depth", nsoil,        dimid_soil)  !-- 3-d soils
+       !C.Jiang, add to output sediment variable
+       iret = nf_def_dim(ncid, "numfracts", NumFracts, dimid_sFracts)  !-- 3 soil fraction
 
        !--- define variables
        !- time definition, timeObs
@@ -3970,7 +4005,88 @@ end subroutine get_albedo12m_netcdf
        iret = nf_put_att_text(ncid,varid,'grid_mapping',23,'lambert_conformal_conic')
        iret = nf_put_att_real(ncid,varid,'missing_value',NF_REAL,1,-9E15)
        endif
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+       if(present(qsKR)) then
+       iret = nf_def_var(ncid,"qsKR",NF_FLOAT, 3,(/dimid_ix,dimid_jx,dimid_times/), varid)
+       iret = nf_put_att_text(ncid,varid,'units',2,'m3')
+       iret = nf_put_att_text(ncid,varid,'long_name',62,'sediment transport capacity of overland flow using KR equation')
+       iret = nf_put_att_text(ncid,varid,'coordinates',3,'x y')
+       iret = nf_put_att_text(ncid,varid,'grid_mapping',23,'lambert_conformal_conic')
+       iret = nf_put_att_real(ncid,varid,'missing_value',NF_REAL,1,-9E15)
+       endif
 
+       if(present(qsEH)) then
+       iret = nf_def_var(ncid,"qsEH",NF_FLOAT,4,(/dimid_sFracts,dimid_ix,dimid_jx,dimid_times/), varid)
+       iret = nf_put_att_text(ncid,varid,'units',2,'m3')
+       iret = nf_put_att_text(ncid,varid,'long_name',61,'sediment transport capacity of channel flow using EH equation')
+       iret = nf_put_att_text(ncid,varid,'coordinates',4,'numfracts x y')
+       iret = nf_put_att_text(ncid,varid,'grid_mapping',23,'lambert_conformal_conic')
+       iret = nf_put_att_real(ncid,varid,'missing_value',NF_REAL,1,-9E15)
+       endif
+
+       if(present(T_SedConc)) then
+       iret = nf_def_var(ncid,"T_SedConc",NF_FLOAT,3,(/dimid_ix,dimid_jx,dimid_times/),varid)
+       iret = nf_put_att_text(ncid,varid,'units',4,'mg/l')
+       iret = nf_put_att_text(ncid,varid,'long_name',28,'Total sediment concentration')
+       iret = nf_put_att_text(ncid,varid,'coordinates',3,'x y')
+       iret = nf_put_att_text(ncid,varid,'grid_mapping',23,'lambert_conformal_conic')
+       iret = nf_put_att_real(ncid,varid,'missing_value',NF_REAL,1,-9E15)
+       endif
+
+       if(present(SedConc)) then
+       iret = nf_def_var(ncid,"SedConc",NF_FLOAT,4,(/dimid_sFracts,dimid_ix,dimid_jx,dimid_times/),varid)
+       iret = nf_put_att_text(ncid,varid,'units',4,'mg/l')
+       iret = nf_put_att_text(ncid,varid,'long_name',40,'Sediment concentraion of size fraction i')
+       iret = nf_put_att_text(ncid,varid,'coordinates',13,'numfracts x y')
+       iret = nf_put_att_text(ncid,varid,'grid_mapping',23,'lambert_conformal_conic')
+       iret = nf_put_att_real(ncid,varid,'missing_value',NF_REAL,1,-9E15)
+       endif
+
+       if(present(SusSed)) then
+       iret = nf_def_var(ncid,"SusSed",NF_FLOAT,4,(/dimid_sFracts,dimid_ix,dimid_jx,dimid_times/), varid)
+       iret = nf_put_att_text(ncid,varid,'units',2,'m3')
+       iret = nf_put_att_text(ncid,varid,'long_name',18,'Suspended seidment')
+       iret = nf_put_att_text(ncid,varid,'coordinates',13,'numfracts x y')
+       iret = nf_put_att_text(ncid,varid,'grid_mapping',23,'lambert_conformal_conic')
+       iret = nf_put_att_real(ncid,varid,'missing_value',NF_REAL,1,-9E15)
+       endif
+
+       if(present(DepSed)) then
+       iret = nf_def_var(ncid,"DepSed",NF_FLOAT,4,(/dimid_sFracts,dimid_ix,dimid_jx,dimid_times/), varid)
+       iret = nf_put_att_text(ncid,varid,'units',2,'m3')
+       iret = nf_put_att_text(ncid,varid,'long_name',18,'Deposited seidment')
+       iret = nf_put_att_text(ncid,varid,'coordinates',13,'numfracts x y')
+       iret = nf_put_att_text(ncid,varid,'grid_mapping',23,'lambert_conformal_conic')
+       iret = nf_put_att_real(ncid,varid,'missing_value',NF_REAL,1,-9E15)
+       endif
+
+       if(present(ErodSed)) then
+       iret = nf_def_var(ncid,"ErodSed",NF_FLOAT,4,(/dimid_sFracts,dimid_ix,dimid_jx,dimid_times/), varid)
+       iret = nf_put_att_text(ncid,varid,'units',2,'m3')
+       iret = nf_put_att_text(ncid,varid,'long_name',32,'Eroded seidment of overland flow')
+       iret = nf_put_att_text(ncid,varid,'coordinates',13,'numfracts x y')
+       iret = nf_put_att_text(ncid,varid,'grid_mapping',23,'lambert_conformal_conic')
+       iret = nf_put_att_real(ncid,varid,'missing_value',NF_REAL,1,-9E15)
+       endif
+
+       if(present(SedFlux)) then
+       iret = nf_def_var(ncid,"SedFlux",NF_FLOAT,4,(/dimid_sFracts,dimid_ix,dimid_jx,dimid_times/), varid)
+       iret = nf_put_att_text(ncid,varid,'units',4,'m3/s')
+       iret = nf_put_att_text(ncid,varid,'long_name',13,'Sediment Flux')
+       iret = nf_put_att_text(ncid,varid,'coordinates',3,'x y')
+       iret = nf_put_att_text(ncid,varid,'grid_mapping',23,'lambert_conformal_conic')
+       iret = nf_put_att_real(ncid,varid,'missing_value',NF_REAL,1,-9E15)
+       endif
+
+       if(present(t_SedFlux)) then
+       iret = nf_def_var(ncid,"t_SedFlux",NF_FLOAT,3,(/dimid_ix,dimid_jx,dimid_times/), varid)
+       iret = nf_put_att_text(ncid,varid,'units',4,'m3/s')
+       iret = nf_put_att_text(ncid,varid,'long_name',19,'Total Sediment Flux')
+       iret = nf_put_att_text(ncid,varid,'coordinates',3,'x y')
+       iret = nf_put_att_text(ncid,varid,'grid_mapping',23,'lambert_conformal_conic')
+       iret = nf_put_att_real(ncid,varid,'missing_value',NF_REAL,1,-9E15)
+       endif
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
        if(present(istreamflux)) then
        iret = nf_def_var(ncid,"istreamflux",NF_INT, 3, (/dimid_ix,dimid_jx,dimid_times/), varid)
        iret = nf_put_att_text(ncid,varid,'units',8,'unitless')
@@ -4403,6 +4519,116 @@ end subroutine get_albedo12m_netcdf
      iret = nf_inq_varid(ncid, "velocity", varid)
      iret = nf_put_vara_real(ncid, varid, (/1,1,output_count/), (/ixrtd,jxrtd,1/), xdumd)
     endif
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+    if (present(qsKR)) then
+#ifdef MPP_LAND
+     xdumd = gqsKR
+#else
+     xdumd = qsKR
+#endif
+     iret = nf_inq_varid(ncid, "qsKR", varid)
+     iret = nf_put_vara_real(ncid, varid, (/1,1,output_count/),(/ixrtd,jxrtd,1/), xdumd)
+    endif
+
+    if (present(T_SedConc)) then
+#ifdef MPP_LAND
+     xdumd = gT_SedConc
+#else
+     xdumd = T_SedConc
+#endif
+     iret = nf_inq_varid(ncid, "T_SedConc", varid)
+     iret = nf_put_vara_real(ncid, varid,(/1,1,output_count/),(/ixrtd,jxrtd,1/), xdumd)
+    endif
+
+    !-- 3-d soil numFracts
+    if (present(SedConc)) then
+      do n = 1, NumFracts
+#ifdef MPP_LAND
+     xdumd = gSedConc(n,:,:)
+#else
+     xdumd = SedConc(n,:,:)
+#endif
+     iret = nf_inq_varid(ncid, "SedConc", varid)
+     iret = nf_put_vara_real(ncid,varid,(/n,1,1,output_count/),(/1,ixrtd,jxrtd,1/), xdumd)
+      enddo !-n soil numFracts
+    endif
+
+    !-- 3-d soil numFracts
+    if (present(qsEH)) then
+      do n = 1, NumFracts
+#ifdef MPP_LAND
+     xdumd = gqsEH(n,:,:)
+#else
+     xdumd = qsEH(n,:,:)
+#endif
+     iret = nf_inq_varid(ncid, "qsEH", varid)
+     iret = nf_put_vara_real(ncid,varid,(/n,1,1,output_count/),(/1,ixrtd,jxrtd,1/), xdumd)
+      enddo !-n soil numFracts
+    endif
+
+    !-- 3-d soil numFracts
+    if (present(SusSed)) then
+      do n = 1, NumFracts
+#ifdef MPP_LAND
+     xdumd = gSusSed(n,:,:)
+#else
+     xdumd = SusSed(n,:,:)
+#endif
+     iret = nf_inq_varid(ncid, "SusSed", varid)
+     iret = nf_put_vara_real(ncid, varid,(/n,1,1,output_count/),(/1,ixrtd,jxrtd,1/), xdumd)
+      enddo !-n soil numFracts
+    endif
+
+    !--3-d soil numFracts
+    if (present(DepSed)) then
+      do n = 1, NumFracts
+#ifdef MPP_LAND
+     xdumd = gDepSed(n,:,:)
+#else
+     xdumd = DepSed(n,:,:)
+#endif
+     iret = nf_inq_varid(ncid, "DepSed", varid)
+     iret = nf_put_vara_real(ncid, varid,(/n,1,1,output_count/),(/1,ixrtd,jxrtd,1/),xdumd)
+      enddo !-n soil numFracts
+    endif
+
+    !--3-d soil numFracts
+    if (present(ErodSed)) then
+      do n = 1, NumFracts
+#ifdef MPP_LAND
+     xdumd = gErodSed(n,:,:)
+#else
+     xdumd = ErodSed(n,:,:)
+#endif
+     iret = nf_inq_varid(ncid, "ErodSed", varid)
+     iret = nf_put_vara_real(ncid,varid,(/n,1,1,output_count/),(/1,ixrtd,jxrtd,1/),xdumd)
+      enddo !-n soil numFracts
+    endif
+
+    !--3-d soil numFracts
+    if (present(SedFlux)) then
+      do n = 1, NumFracts
+#ifdef MPP_LAND
+     xdumd = gSedFlux(n,:,:)
+#else
+     xdumd = SedFlux(n,:,:)
+#endif
+     iret = nf_inq_varid(ncid, "SedFlux", varid)
+     iret = nf_put_vara_real(ncid,varid,(/n,1,1,output_count/),(/1,ixrtd,jxrtd,1/),xdumd)
+      enddo !-n soil numFracts
+    endif
+
+    if (present(t_SedFlux)) then
+#ifdef MPP_LAND
+     xdumd = gt_SedFlux
+#else
+     xdumd = t_SedFlux
+#endif
+     iret = nf_inq_varid(ncid, "t_SedFlux", varid)
+     iret = nf_put_vara_real(ncid,varid,(/1,1,output_count/),(/ixrtd,jxrtd,1/),xdumd)
+    endif
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
     if (present(istreamflux)) then
 #ifdef MPP_LAND
